@@ -67,10 +67,13 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 .rating-bar{height:100%;border-radius:4px;transition:width .6s ease}
 .rating-grade{font-size:12px;font-weight:700;width:40px;text-align:center}
 .rating-comment{font-size:11px;color:var(--text3);flex:2}
+.grade-ap{color:var(--green)}.grade-ap .rating-bar{background:var(--green);width:100%}
 .grade-a{color:var(--green)}.grade-a .rating-bar{background:var(--green);width:95%}
+.grade-am{color:var(--green)}.grade-am .rating-bar{background:var(--green);width:88%}
 .grade-bp{color:var(--green)}.grade-bp .rating-bar{background:var(--green);width:82%}
 .grade-b{color:var(--yellow)}.grade-b .rating-bar{background:var(--yellow);width:70%}
 .grade-bm{color:var(--orange)}.grade-bm .rating-bar{background:var(--orange);width:58%}
+.grade-cp{color:var(--orange)}.grade-cp .rating-bar{background:var(--orange);width:52%}
 .grade-c{color:var(--red)}.grade-c .rating-bar{background:var(--red);width:45%}
 .rec-list{display:flex;flex-direction:column;gap:6px}
 .rec-item{font-size:13px;color:var(--text);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;border-left:3px solid var(--accent)}
@@ -159,8 +162,9 @@ document.getElementById('tabBar').addEventListener('click',function(e){
 });
 
 function gradeClass(g){
-  if(g==='A')return'grade-a';if(g==='B+')return'grade-bp';
-  if(g==='B')return'grade-b';if(g==='B-')return'grade-bm';return'grade-c';
+  if(g==='A+')return'grade-ap';if(g==='A')return'grade-a';if(g==='A-')return'grade-am';
+  if(g==='B+')return'grade-bp';if(g==='B')return'grade-b';if(g==='B-')return'grade-bm';
+  if(g==='C+')return'grade-cp';return'grade-c';
 }
 function faunaTagClass(t){
   const m={fish:{bg:'var(--blue-bg)',c:'var(--blue)',bd:'var(--blue-bd)'},
