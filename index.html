@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>원준이네 아쿠아스케이핑 대시보드</title>
+<title>원준이네 아쿠아스케이핑</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -17,16 +17,19 @@
   --orange:#fb923c;--orange-bg:rgba(251,146,60,.1);--orange-bd:rgba(251,146,60,.25);
 }
 body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0}
-.header{background:linear-gradient(135deg,#0f2440,#1a3a5c);padding:32px 40px;border-bottom:1px solid var(--border)}
+.header{background:linear-gradient(135deg,#0f2440,#1a3a5c);padding:24px 40px 0;border-bottom:1px solid var(--border)}
 .header h1{font-size:24px;color:#fff;font-weight:700;margin-bottom:4px}
 .header p{font-size:13px;color:var(--text2)}
 .header .meta{display:flex;gap:20px;margin-top:12px}
 .header .meta-item{font-size:12px;color:var(--text3);background:rgba(255,255,255,.05);padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
 .header .meta-item strong{color:var(--text2)}
-
+.tabs{display:flex;gap:0;margin-top:20px}
+.tab{padding:12px 28px;font-size:14px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.tab:hover{color:var(--text2)}
+.tab.active{color:#fff;border-bottom-color:var(--accent)}
+.tab-content{display:none}
+.tab-content.active{display:block}
 .main{max-width:1400px;margin:0 auto;padding:24px 28px}
-
-/* Summary cards */
 .summary-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px}
 .sum-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s}
 .sum-card:hover,.sum-card.active{border-color:var(--accent);background:var(--card2);transform:translateY(-2px);box-shadow:0 4px 20px rgba(59,158,206,.15)}
@@ -40,8 +43,6 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 .badge-snail{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-bd)}
 .badge-co2{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
 .badge-auto{background:rgba(255,255,255,.06);color:var(--text2);border:1px solid var(--border)}
-
-/* Detail panel */
 .detail{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:24px;display:none}
 .detail.show{display:block;animation:fadeIn .3s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -56,12 +57,9 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 .spec-row:last-child{border-bottom:none}
 .spec-label{font-size:13px;color:var(--text2)}
 .spec-value{font-size:13px;color:var(--text);font-weight:500;text-align:right;max-width:60%}
-
 .fauna-list,.flora-list{display:flex;flex-wrap:wrap;gap:6px}
 .fauna-tag{font-size:12px;padding:4px 10px;border-radius:16px}
 .flora-tag{font-size:12px;padding:4px 10px;border-radius:16px;background:rgba(52,211,153,.08);color:var(--green);border:1px solid rgba(52,211,153,.2)}
-
-/* Ratings */
 .rating-grid{display:flex;flex-direction:column;gap:8px}
 .rating-row{display:flex;align-items:center;gap:10px}
 .rating-label{font-size:13px;color:var(--text2);width:60px;flex-shrink:0}
@@ -74,12 +72,8 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 .grade-b{color:var(--yellow)}.grade-b .rating-bar{background:var(--yellow);width:70%}
 .grade-bm{color:var(--orange)}.grade-bm .rating-bar{background:var(--orange);width:58%}
 .grade-c{color:var(--red)}.grade-c .rating-bar{background:var(--red);width:45%}
-
-/* Recommendations */
 .rec-list{display:flex;flex-direction:column;gap:6px}
 .rec-item{font-size:13px;color:var(--text);line-height:1.6;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;border-left:3px solid var(--accent)}
-
-/* Priorities */
 .priorities{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
 .priorities h2{padding:18px 24px;font-size:16px;color:#fff;border-bottom:1px solid var(--border)}
 .pri-list{padding:16px 24px}
@@ -92,170 +86,162 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 .pri-content{flex:1}
 .pri-target{font-size:14px;font-weight:600;color:#fff;margin-bottom:2px}
 .pri-detail{font-size:12px;color:var(--text2);line-height:1.5}
-
 .full-width{grid-column:1/-1}
+.status-cards{display:flex;flex-direction:column;gap:24px;max-width:1100px;margin:0 auto}
+.st-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:16px;overflow:hidden;backdrop-filter:blur(10px)}
+.st-card-header{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.st-tank-num{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex-shrink:0}
+.st-card:nth-child(1) .st-tank-num{background:linear-gradient(135deg,#2563eb,#3b82f6)}
+.st-card:nth-child(2) .st-tank-num{background:linear-gradient(135deg,#0891b2,#22d3ee)}
+.st-card:nth-child(3) .st-tank-num{background:linear-gradient(135deg,#059669,#34d399)}
+.st-card:nth-child(4) .st-tank-num{background:linear-gradient(135deg,#d97706,#fbbf24)}
+.st-card:nth-child(5) .st-tank-num{background:linear-gradient(135deg,#9333ea,#c084fc)}
+.st-card-title{display:flex;flex-direction:column;gap:2px}
+.st-card-title .st-name{font-size:18px;font-weight:700;color:#f0f6fc}
+.st-card-title .st-tag{font-size:12px;color:#8badc4;background:rgba(255,255,255,.08);padding:2px 10px;border-radius:20px;display:inline-block;width:fit-content}
+.st-card-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0}
+.st-cell{padding:14px 24px;border-bottom:1px solid rgba(255,255,255,0.05);border-right:1px solid rgba(255,255,255,0.05)}
+.st-cell:last-child{border-right:none}
+.st-cell-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#5a8aaa;margin-bottom:6px;font-weight:600}
+.st-cell-value{font-size:14px;line-height:1.6;color:#c8dae8}
+.st-cell-value strong{color:#f0f6fc;font-weight:600}
+.st-bio{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:0}
+.st-bio .st-cell{border-bottom:none}
+.fish-tag,.plant-tag,.shrimp-tag,.snail-tag{font-size:13px;padding:3px 10px;border-radius:20px;display:inline-block}
+.fish-tag{background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.2)}
+.plant-tag{background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.2)}
+.shrimp-tag{background:rgba(251,146,60,.15);color:#fdba74;border:1px solid rgba(251,146,60,.2)}
+.snail-tag{background:rgba(168,85,247,.15);color:#d8b4fe;border:1px solid rgba(168,85,247,.2)}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px}
 @media(max-width:900px){
   .summary-row{grid-template-columns:repeat(2,1fr)}
   .detail-body{grid-template-columns:1fr}
   .detail-section{border-right:none}
+  .st-bio{grid-template-columns:1fr}
 }
-@media(max-width:600px){.summary-row{grid-template-columns:1fr}}
+@media(max-width:600px){
+  .summary-row{grid-template-columns:1fr}
+  .st-card-body{grid-template-columns:1fr}
+  .tabs{gap:0}.tab{padding:12px 16px;font-size:13px}
+}
 </style>
 </head>
 <body>
 <div class="header">
-  <h1 id="hTitle">원준이네 아쿠아스케이핑</h1>
-  <p id="hSub">어항 종합 관리 대시보드</p>
+  <h1>원준이네 아쿠아스케이핑</h1>
+  <p>어항 종합 관리</p>
   <div class="meta" id="hMeta"></div>
+  <div class="tabs" id="tabBar">
+    <div class="tab active" data-tab="dashboard">대시보드</div>
+    <div class="tab" data-tab="status">세팅 현황표</div>
+  </div>
 </div>
-<div class="main">
-  <div class="summary-row" id="summaryRow"></div>
-  <div class="detail" id="detailPanel"></div>
-  <div class="priorities" id="priorities"></div>
+<div class="tab-content active" id="tab-dashboard">
+  <div class="main">
+    <div class="summary-row" id="summaryRow"></div>
+    <div class="detail" id="detailPanel"></div>
+    <div class="priorities" id="priorities"></div>
+  </div>
 </div>
-
+<div class="tab-content" id="tab-status">
+  <div class="main">
+    <div class="status-cards" id="statusCards"></div>
+  </div>
+</div>
 <script>
-const AQUARIUM_DATA = {"meta":{"owner":"Qlee","title":"원준이네 아쿠아스케이핑","lastUpdated":"2026-04-07","totalTanks":5},"tanks":[{"id":1,"name":"2자 슬림","concept":"메인 커뮤니티","volume":"약 60L","substrate":"샌드 (유목 세팅)","filter":"니틀리 외부여과기 (여과재 7L)","light":"위크아쿠아 Z400 (광량 50%, 5시간)","equipment":["100W 히터","자동환수시스템"],"co2":null,"fauna":[{"name":"네온 테트라","count":16,"type":"fish"},{"name":"러미노즈","count":6,"type":"fish"},{"name":"체리바브","count":4,"type":"fish"},{"name":"골든허니구라미","count":4,"type":"fish"},{"name":"골라미 롱핀","count":2,"type":"fish"},{"name":"안시","count":3,"type":"fish"},{"name":"야마토 새우","count":5,"type":"shrimp"}],"flora":["부세","미크로소리움","나나 콘젠서스","콩나나","부상수초"],"ratings":{"여과":{"grade":"A","comment":"니틀리 7L는 60L 수조에 충분한 여과 용량"},"생체":{"grade":"B+","comment":"다양한 어종 구성이나 생체량이 다소 많은 편"},"수초":{"grade":"B+","comment":"음성수초 중심으로 안정적, 유목 활착 상태 양호"},"조명":{"grade":"B","comment":"광량 50%로 음성수초에 적합, 이끼 위험 낮음"},"수질":{"grade":"A","comment":"자동환수시스템으로 수질 안정성 확보"}},"recommendations":["생체량이 약 40마리로 다소 많으므로 주간 환수 시 수질 파라미터 확인 권장","부상수초 과다 시 조명 차단 및 수면 가스 교환 저하 가능성 주의","골라미 롱핀의 영역 특성상 다른 어종과의 핀니핑 여부 관찰"]},{"id":2,"name":"30하이큐브","concept":"소형어 샌드항","volume":"약 27L","substrate":"샌드 (중앙 화분에 소일, 신규 교체)","filter":"페이토 LQ350 외부여과기","light":"메탈라이트 300 (광량 70%, 5시간)","equipment":["100W 히터","자동환수시스템"],"co2":"D701 고압이탄 (2구 분배기, 초당 1방울)","fauna":[{"name":"백운산","count":5,"type":"fish"},{"name":"골든 백운산","count":5,"type":"fish"},{"name":"안시","count":1,"type":"fish"},{"name":"야마토 새우","count":5,"type":"shrimp"}],"flora":["피나디피다","암브리아(소량)","콩나나"],"ratings":{"여과":{"grade":"A","comment":"외부여과기로 27L 수조에 충분한 여과 용량"},"생체":{"grade":"B+","comment":"백운산 위주로 온순한 구성, 적절한 생체량"},"수초":{"grade":"B","comment":"피나디피다 식재 직후, 활착 및 성장 관찰 필요"},"이탄":{"grade":"A","comment":"D701 고압이탄 신규 도입, 안정적 공급"},"수질":{"grade":"A","comment":"자동환수 + 외부여과로 안정적"}},"recommendations":["피나디피다 활착 상태를 2주간 후 확인, 뿌리가 새 소일에 정착했는지 관찰","이탄 도입 후 이끼 발생 여부 모니터링 (광량 70% + CO2로 이끼 촉진 가능성)","100W 히터가 30큐브에는 과한 용량이므로 여름철 수온 모니터링 필요"]},{"id":3,"name":"30하이큐브","concept":"메인 수초항","volume":"약 27L","substrate":"소일","filter":"페이토 LQ350 외부여과기","light":"메탈라이트 300 (광량 70%, 5시간)","equipment":["100W 히터","자동환수시스템"],"co2":"D701 고압이탄 (2구 분배기, 초당 1방울)","fauna":[{"name":"그린네온테트라","count":9,"type":"fish"},{"name":"라스보라 쿠보타이","count":9,"type":"fish"},{"name":"오토싱","count":1,"type":"fish"},{"name":"생이새우","count":"수십","type":"shrimp"},{"name":"미니 렘즈혼","count":"다수","type":"snail"}],"flora":["미크란테뭄","레이넥키 미니","워터바코바","스트로징 레펜스","로탈라 블러드레드","유로피언 클로버","로탈라 플라워","루드위지아 다이아몬드"],"ratings":{"여과":{"grade":"A","comment":"외부여과기로 안정적인 생물여과 환경"},"생체":{"grade":"B-","comment":"소형어 18마리 + 새우 다수로 27L 대비 다소 과밀"},"수초":{"grade":"A","comment":"카펫 + 레드 계열 구성이 우수, 다양한 수초 조합"},"이탄":{"grade":"A","comment":"D701 고압이탄 도입으로 수초 성장 및 발색 개선 기대"},"수질":{"grade":"B+","comment":"생체량이 많아 수질 변동 주의 필요"}},"recommendations":["쿠보타이 이동 후 적응 상태 관찰 (스트레스 반응, 먹이 반응 등)","소형어 18마리 + 새우 다수로 생체량이 많으므로 주 1회 수질 테스트 권장","이탄 도입 후 수초 성장 속도 변화에 따라 트리밍 주기 조절 필요","이끼 발생 시 조명 시간을 4시간으로 줄이고 점진적 증가"]},{"id":4,"name":"20하이큐브","concept":"서브 샌드항","volume":"약 8L","substrate":"샌드 (중앙 소일통)","filter":"스펀지 여과기","light":"위크아쿠아 미니7","equipment":[],"co2":null,"fauna":[{"name":"제브라 다니오","count":2,"type":"fish"},{"name":"레오파드 다니오","count":1,"type":"fish"},{"name":"야마토 새우","count":2,"type":"shrimp"},{"name":"애플 스네일","count":1,"type":"snail"}],"flora":["암브리아"],"ratings":{"여과":{"grade":"B+","comment":"스펀지 여과기는 소형 수조에 최적화된 여과 방식"},"생체":{"grade":"B","comment":"제브라 다니오 2마리가 공격성으로 분리 사육 중, 서로 잘 적응한 상태"},"수초":{"grade":"B-","comment":"암브리아만으로 단조로운 구성"},"조명":{"grade":"B","comment":"미니7은 20큐브에 적합한 광량"},"수온":{"grade":"C","comment":"히터 없이 겨울철 수온 하락 위험"}},"recommendations":["물생활의 시작점 — 첫째 딸이 유치원에서 데려온 제브라 다니오가 계기","공격성으로 다른 어종과 합사 불가, 현재 2마리 분리 사육 유지","겨울철 대비 10~25W 소형 히터 추가 검토","수초 다양화 검토 — 소일통에 수초 추가 식재 가능"]},{"id":5,"name":"20하이큐브","concept":"서브 수초항","volume":"약 8L","substrate":"소일","filter":"스펀지 여과기","light":"메탈라이트 200 (광량 70%, 5시간)","equipment":["10W 히터"],"co2":"미니 고압이탄 (3~4초당 1방울)","fauna":[{"name":"구피","count":11,"type":"fish"},{"name":"CRS 새우","count":13,"type":"shrimp"},{"name":"애플 스네일","count":1,"type":"snail"}],"flora":["암브리아","루드위지아 아쿠아타","레이넥키 미니","루드위지아 슈퍼레드","옐로우 오란다","로탈라 플라워","미니헤어글라스 재판"],"ratings":{"여과":{"grade":"B+","comment":"스펀지 여과기는 CRS 사육에 최적화, 치새우 안전 확보"},"생체":{"grade":"B","comment":"CRS 13마리 번식 성공은 긍정적, 구피 합사 주의 필요"},"수초":{"grade":"A","comment":"다양한 수초 7종으로 풍성한 구성"},"이탄":{"grade":"B+","comment":"미니 고압이탄 도입으로 수초 성장 촉진"},"수질":{"grade":"B","comment":"CRS는 수질 민감, 자동환수 미설치로 수동 관리 필요"}},"recommendations":["CRS 번식이 활발하므로 구피와의 분리를 장기적으로 검토 (치새우 생존율 향상)","TDS 미터로 환수 전후 수질 모니터링 권장 (정수기 물 사용 시 TDS 변동 확인)","여름철 수온 관리 필수 — CRS 적정 20~24℃, 쿨링팬 준비 권장","구피 분리 시 별도 수조 또는 1번 커뮤니티 수조로의 이동 검토 (4번은 제브라 공격성으로 합사 불가)"]}],"priorities":[{"level":3,"target":"5번 CRS 분리","detail":"CRS 번식 성공 중이므로 구피와 분리하여 치새우 생존율을 높이는 것을 권장. 4번은 제브라 공격성으로 합사 불가, 별도 수조 또는 1번 이동 검토."},{"level":2,"target":"이끼 모니터링","detail":"2번·3번 이탄 도입 후 2~3주간 이끼 발생 여부 확인. 발생 시 조명 시간 조절 또는 생물 투입으로 대응."},{"level":2,"target":"5번 여과 강화","detail":"생체량 증가 시 걸이식 또는 소형 외부여과기 추가 검토."},{"level":1,"target":"4번 히터 추가","detail":"겨울철 대비 10~25W 소형 히터 추가 검토. 현재는 실온이 높아 급하지 않음."}]};
+const AQUARIUM_DATA = {"meta":{"owner":"Qlee","title":"원준이네 아쿠아스케이핑","lastUpdated":"2026-04-17","totalTanks":5},"tanks":[{"id":1,"name":"2자 슬림","concept":"메인 커뮤니티","volume":"약 60L","substrate":"샌드 (유목 세팅)","filter":"니틀리 외부여과기 (여과재 7L)","light":"위크아쿠아 Z400 (광량 50%, 5시간)","equipment":["100W 히터","자동환수시스템"],"co2":null,"fauna":[{"name":"네온 테트라","count":16,"type":"fish"},{"name":"러미노즈","count":6,"type":"fish"},{"name":"체리바브","count":4,"type":"fish"},{"name":"골든허니구라미","count":4,"type":"fish"},{"name":"골라미 롱핀","count":2,"type":"fish"},{"name":"안시","count":3,"type":"fish"},{"name":"야마토 새우","count":5,"type":"shrimp"}],"flora":["부세","미크로소리움","나나 콘젠서스","콩나나","부상수초"],"ratings":{"여과":{"grade":"A","comment":"니틀리 7L는 60L 수조에 충분한 여과 용량"},"생체":{"grade":"B+","comment":"다양한 어종 구성이나 생체량이 다소 많은 편"},"수초":{"grade":"B+","comment":"음성수초 중심으로 안정적, 유목 활착 상태 양호"},"조명":{"grade":"B","comment":"광량 50%로 음성수초에 적합, 이끼 위험 낮음"},"수질":{"grade":"A","comment":"자동환수시스템으로 수질 안정성 확보"}},"recommendations":["생체량이 약 40마리로 다소 많으므로 주간 환수 시 수질 파라미터 확인 권장","부상수초 과다 시 조명 차단 및 수면 가스 교환 저하 가능성 주의","골라미 롱핀의 영역 특성상 다른 어종과의 핀니핑 여부 관찰"]},{"id":2,"name":"30하이큐브","concept":"소형어 샌드항","volume":"약 27L","substrate":"샌드 (중앙 화분에 소일, 신규 교체)","filter":"페이토 LQ350 외부여과기","light":"메탈라이트 300 (광량 70%, 5시간)","equipment":["100W 히터","자동환수시스템"],"co2":"D701 고압이탄 (2구 분배기, 초당 1방울)","fauna":[{"name":"백운산","count":5,"type":"fish"},{"name":"골든 백운산","count":5,"type":"fish"},{"name":"안시","count":1,"type":"fish"},{"name":"야마토 새우","count":5,"type":"shrimp"}],"flora":["피나디피다","암브리아(소량)","콩나나"],"ratings":{"여과":{"grade":"A","comment":"외부여과기로 27L 수조에 충분한 여과 용량"},"생체":{"grade":"B+","comment":"백운산 위주로 온순한 구성, 적절한 생체량"},"수초":{"grade":"B","comment":"피나디피다 식재 직후, 활착 및 성장 관찰 필요"},"이탄":{"grade":"A","comment":"D701 고압이탄 신규 도입, 안정적 공급"},"수질":{"grade":"A","comment":"자동환수 + 외부여과로 안정적"}},"recommendations":["피나디피다 활착 상태를 2주간 후 확인, 뿌리가 새 소일에 정착했는지 관찰","이탄 도입 후 이끼 발생 여부 모니터링 (광량 70% + CO2로 이끼 촉진 가능성)","100W 히터가 30큐브에는 과한 용량이므로 여름철 수온 모니터링 필요"]},{"id":3,"name":"30하이큐브","concept":"메인 수초항","volume":"약 27L","substrate":"소일","filter":"페이토 LQ350 외부여과기","light":"메탈라이트 300 (광량 70%, 5시간)","equipment":["100W 히터","자동환수시스템"],"co2":"D701 고압이탄 (2구 분배기, 초당 1방울)","fauna":[{"name":"그린네온테트라","count":9,"type":"fish"},{"name":"라스보라 쿠보타이","count":9,"type":"fish"},{"name":"오토싱","count":1,"type":"fish"},{"name":"생이새우","count":"수십","type":"shrimp"},{"name":"미니 렘즈혼","count":"다수","type":"snail"}],"flora":["미크란테뭄","레이넥키 미니","워터바코바","스트로징 레펜스","로탈라 블러드레드","유로피언 클로버","로탈라 플라워","루드위지아 다이아몬드"],"ratings":{"여과":{"grade":"A","comment":"외부여과기로 안정적인 생물여과 환경"},"생체":{"grade":"B-","comment":"소형어 18마리 + 새우 다수로 27L 대비 다소 과밀"},"수초":{"grade":"A","comment":"카펫 + 레드 계열 구성이 우수, 다양한 수초 조합"},"이탄":{"grade":"A","comment":"D701 고압이탄 도입으로 수초 성장 및 발색 개선 기대"},"수질":{"grade":"B+","comment":"생체량이 많아 수질 변동 주의 필요"}},"recommendations":["쿠보타이 이동 후 적응 상태 관찰 (스트레스 반응, 먹이 반응 등)","소형어 18마리 + 새우 다수로 생체량이 많으므로 주 1회 수질 테스트 권장","이탄 도입 후 수초 성장 속도 변화에 따라 트리밍 주기 조절 필요","이끼 발생 시 조명 시간을 4시간으로 줄이고 점진적 증가"]},{"id":4,"name":"20하이큐브","concept":"서브 샌드항","volume":"약 8L","substrate":"샌드 (중앙 소일통)","filter":"스펀지 여과기","light":"위크아쿠아 미니7","equipment":[],"co2":null,"fauna":[{"name":"제브라 다니오","count":2,"type":"fish"},{"name":"레오파드 다니오","count":1,"type":"fish"},{"name":"야마토 새우","count":2,"type":"shrimp"},{"name":"애플 스네일","count":1,"type":"snail"}],"flora":["암브리아"],"ratings":{"여과":{"grade":"B+","comment":"스펀지 여과기는 소형 수조에 최적화된 여과 방식"},"생체":{"grade":"B","comment":"제브라 다니오 2마리가 공격성으로 분리 사육 중, 서로 잘 적응한 상태"},"수초":{"grade":"B-","comment":"암브리아만으로 단조로운 구성"},"조명":{"grade":"B","comment":"미니7은 20큐브에 적합한 광량"},"수온":{"grade":"C","comment":"히터 없이 겨울철 수온 하락 위험"}},"recommendations":["물생활의 시작점 — 첫째 딸이 유치원에서 데려온 제브라 다니오가 계기","공격성으로 다른 어종과 합사 불가, 현재 2마리 분리 사육 유지","겨울철 대비 10~25W 소형 히터 추가 검토","수초 다양화 검토 — 소일통에 수초 추가 식재 가능"]},{"id":5,"name":"20하이큐브","concept":"서브 수초항","volume":"약 8L","substrate":"소일","filter":"스펀지 여과기","light":"메탈라이트 200 (광량 70%, 5시간)","equipment":["10W 히터"],"co2":"미니 고압이탄 (3~4초당 1방울)","fauna":[{"name":"구피","count":11,"type":"fish"},{"name":"CRS 새우","count":13,"type":"shrimp"},{"name":"애플 스네일","count":1,"type":"snail"}],"flora":["암브리아","루드위지아 아쿠아타","레이넥키 미니","루드위지아 슈퍼레드","옐로우 오란다","로탈라 플라워","미니헤어글라스 재판"],"ratings":{"여과":{"grade":"B+","comment":"스펀지 여과기는 CRS 사육에 최적화, 치새우 안전 확보"},"생체":{"grade":"B","comment":"CRS 13마리 번식 성공은 긍정적, 구피 합사 주의 필요"},"수초":{"grade":"A","comment":"다양한 수초 7종으로 풍성한 구성"},"이탄":{"grade":"B+","comment":"미니 고압이탄 도입으로 수초 성장 촉진"},"수질":{"grade":"B","comment":"CRS는 수질 민감, 자동환수 미설치로 수동 관리 필요"}},"recommendations":["CRS 번식이 활발하므로 구피와의 분리를 장기적으로 검토 (치새우 생존율 향상)","TDS 미터로 환수 전후 수질 모니터링 권장 (정수기 물 사용 시 TDS 변동 확인)","여름철 수온 관리 필수 — CRS 적정 20~24℃, 쿨링팬 준비 권장","구피 분리 시 별도 수조 또는 1번 커뮤니티 수조로의 이동 검토 (4번은 제브라 공격성으로 합사 불가)"]}],"priorities":[{"level":3,"target":"5번 CRS 분리","detail":"CRS 번식 성공 중이므로 구피와 분리하여 치새우 생존율을 높이는 것을 권장. 4번은 제브라 공격성으로 합사 불가, 별도 수조 또는 1번 이동 검토."},{"level":2,"target":"이끼 모니터링","detail":"2번·3번 이탄 도입 후 2~3주간 이끼 발생 여부 확인. 발생 시 조명 시간 조절 또는 생물 투입으로 대응."},{"level":2,"target":"5번 여과 강화","detail":"생체량 증가 시 걸이식 또는 소형 외부여과기 추가 검토."},{"level":1,"target":"4번 히터 추가","detail":"겨울철 대비 10~25W 소형 히터 추가 검토. 현재는 실온이 높아 급하지 않음."}]};
+
+document.getElementById('tabBar').addEventListener('click',function(e){
+  const t=e.target.closest('.tab');if(!t)return;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('tab-'+t.dataset.tab).classList.add('active');
+});
 
 function gradeClass(g){
   if(g==='A')return'grade-a';if(g==='B+')return'grade-bp';
   if(g==='B')return'grade-b';if(g==='B-')return'grade-bm';return'grade-c';
 }
-function faunaClass(t){
-  if(t==='fish')return'badge-fish';if(t==='shrimp')return'badge-shrimp';return'badge-snail';
-}
 function faunaTagClass(t){
   const m={fish:{bg:'var(--blue-bg)',c:'var(--blue)',bd:'var(--blue-bd)'},
     shrimp:{bg:'var(--orange-bg)',c:'var(--orange)',bd:'var(--orange-bd)'},
     snail:{bg:'var(--purple-bg)',c:'var(--purple)',bd:'var(--purple-bd)'}};
-  const s=m[t]||m.fish;
-  return`background:${s.bg};color:${s.c};border:1px solid ${s.bd}`;
+  const s=m[t]||m.fish;return`background:${s.bg};color:${s.c};border:1px solid ${s.bd}`;
 }
 function countFauna(tank){
   let fish=0,shrimp=0,snail=0;
-  tank.fauna.forEach(f=>{
-    const c=typeof f.count==='number'?f.count:0;
-    if(f.type==='fish')fish+=c;else if(f.type==='shrimp')shrimp+=c;else snail+=c;
-  });
+  tank.fauna.forEach(f=>{const c=typeof f.count==='number'?f.count:0;
+    if(f.type==='fish')fish+=c;else if(f.type==='shrimp')shrimp+=c;else snail+=c;});
   return{fish,shrimp,snail};
 }
-
-let data=null, activeTank=null;
-
+let data=null,activeTank=null;
 function init(){
   data=AQUARIUM_DATA;
-  renderMeta();renderSummary();renderPriorities();
-  selectTank(0);
+  renderMeta();renderSummary();renderPriorities();renderStatus();selectTank(0);
 }
-
 function renderMeta(){
   document.getElementById('hMeta').innerHTML=
     `<span class="meta-item">최종 업데이트 <strong>${data.meta.lastUpdated}</strong></span>`+
     `<span class="meta-item">수조 <strong>${data.meta.totalTanks}개</strong></span>`+
-    `<span class="meta-item">수초 <strong>${countAllFlora()}종</strong></span>`+
-    `<span class="meta-item">생물 <strong>${countAllFauna()}종</strong></span>`;
+    `<span class="meta-item">수초 <strong>${cntFlora()}종</strong></span>`+
+    `<span class="meta-item">생물 <strong>${cntFauna()}종</strong></span>`;
 }
-function countAllFlora(){const s=new Set();data.tanks.forEach(t=>t.flora.forEach(f=>s.add(f)));return s.size}
-function countAllFauna(){const s=new Set();data.tanks.forEach(t=>t.fauna.forEach(f=>s.add(f.name)));return s.size}
-
+function cntFlora(){const s=new Set();data.tanks.forEach(t=>t.flora.forEach(f=>s.add(f)));return s.size}
+function cntFauna(){const s=new Set();data.tanks.forEach(t=>t.fauna.forEach(f=>s.add(f.name)));return s.size}
 function renderSummary(){
-  const row=document.getElementById('summaryRow');
-  row.innerHTML=data.tanks.map((t,i)=>{
-    const c=countFauna(t);
-    let badges='';
-    if(c.fish)badges+=`<span class="badge badge-fish">어류 ${c.fish}</span>`;
-    if(c.shrimp)badges+=`<span class="badge badge-shrimp">새우 ${c.shrimp}</span>`;
-    if(c.snail)badges+=`<span class="badge badge-snail">스네일 ${c.snail}</span>`;
-    if(t.co2)badges+=`<span class="badge badge-co2">CO2</span>`;
-    if(t.equipment.includes('자동환수시스템'))badges+=`<span class="badge badge-auto">자동환수</span>`;
-    return`<div class="sum-card" data-idx="${i}" onclick="selectTank(${i})">
-      <div class="num">${t.id}번 수조</div>
-      <div class="name">${t.name}</div>
-      <div class="concept">${t.concept} · ${t.volume}</div>
-      <div class="badges">${badges}</div>
-    </div>`;
+  document.getElementById('summaryRow').innerHTML=data.tanks.map((t,i)=>{
+    const c=countFauna(t);let b='';
+    if(c.fish)b+=`<span class="badge badge-fish">어류 ${c.fish}</span>`;
+    if(c.shrimp)b+=`<span class="badge badge-shrimp">새우 ${c.shrimp}</span>`;
+    if(c.snail)b+=`<span class="badge badge-snail">스네일 ${c.snail}</span>`;
+    if(t.co2)b+=`<span class="badge badge-co2">CO2</span>`;
+    if(t.equipment.includes('자동환수시스템'))b+=`<span class="badge badge-auto">자동환수</span>`;
+    return`<div class="sum-card" onclick="selectTank(${i})"><div class="num">${t.id}번 수조</div><div class="name">${t.name}</div><div class="concept">${t.concept} · ${t.volume}</div><div class="badges">${b}</div></div>`;
   }).join('');
 }
-
 function selectTank(idx){
   activeTank=idx;
   document.querySelectorAll('.sum-card').forEach((c,i)=>c.classList.toggle('active',i===idx));
   renderDetail(data.tanks[idx]);
 }
-
 function renderDetail(t){
-  const p=document.getElementById('detailPanel');
-  p.classList.add('show');
-
-  const ratings=Object.entries(t.ratings).map(([k,v])=>{
-    const gc=gradeClass(v.grade);
-    return`<div class="rating-row ${gc}">
-      <span class="rating-label">${k}</span>
-      <div class="rating-bar-bg"><div class="rating-bar"></div></div>
-      <span class="rating-grade">${v.grade}</span>
-      <span class="rating-comment">${v.comment}</span>
-    </div>`;
-  }).join('');
-
-  const fauna=t.fauna.map(f=>{
-    const cnt=typeof f.count==='number'?` ×${f.count}`:`(${f.count})`;
-    return`<span class="fauna-tag" style="${faunaTagClass(f.type)}">${f.name}${cnt}</span>`;
-  }).join('');
-
+  const p=document.getElementById('detailPanel');p.classList.add('show');
+  const ratings=Object.entries(t.ratings).map(([k,v])=>{const gc=gradeClass(v.grade);
+    return`<div class="rating-row ${gc}"><span class="rating-label">${k}</span><div class="rating-bar-bg"><div class="rating-bar"></div></div><span class="rating-grade">${v.grade}</span><span class="rating-comment">${v.comment}</span></div>`;}).join('');
+  const fauna=t.fauna.map(f=>{const cnt=typeof f.count==='number'?` ×${f.count}`:`(${f.count})`;
+    return`<span class="fauna-tag" style="${faunaTagClass(f.type)}">${f.name}${cnt}</span>`;}).join('');
   const flora=t.flora.map(f=>`<span class="flora-tag">${f}</span>`).join('');
-
   const recs=t.recommendations.map(r=>`<div class="rec-item">${r}</div>`).join('');
-
-  const co2Row=t.co2?`<div class="spec-row"><span class="spec-label">CO2</span><span class="spec-value">${t.co2}</span></div>`:'';
-  const equipStr=t.equipment.length?t.equipment.join(', '):'없음';
-
-  p.innerHTML=`
-    <div class="detail-header">
-      <h2>${t.id}번 · ${t.name} <span style="font-weight:400;color:var(--text2);font-size:16px">${t.concept}</span></h2>
-      <span class="vol">${t.volume}</span>
-    </div>
-    <div class="detail-body">
-      <div class="detail-section">
-        <h3>장비 스펙</h3>
-        <div class="spec-row"><span class="spec-label">바닥재</span><span class="spec-value">${t.substrate}</span></div>
-        <div class="spec-row"><span class="spec-label">여과</span><span class="spec-value">${t.filter}</span></div>
-        <div class="spec-row"><span class="spec-label">조명</span><span class="spec-value">${t.light}</span></div>
-        <div class="spec-row"><span class="spec-label">장비</span><span class="spec-value">${equipStr}</span></div>
-        ${co2Row}
-      </div>
-      <div class="detail-section">
-        <h3>평가</h3>
-        <div class="rating-grid">${ratings}</div>
-      </div>
-      <div class="detail-section">
-        <h3>생물</h3>
-        <div class="fauna-list">${fauna}</div>
-      </div>
-      <div class="detail-section">
-        <h3>수초</h3>
-        <div class="flora-list">${flora}</div>
-      </div>
-      <div class="detail-section full-width">
-        <h3>개선 권고사항</h3>
-        <div class="rec-list">${recs}</div>
-      </div>
-    </div>`;
+  const co2=t.co2?`<div class="spec-row"><span class="spec-label">CO2</span><span class="spec-value">${t.co2}</span></div>`:'';
+  const eq=t.equipment.length?t.equipment.join(', '):'없음';
+  p.innerHTML=`<div class="detail-header"><h2>${t.id}번 · ${t.name} <span style="font-weight:400;color:var(--text2);font-size:16px">${t.concept}</span></h2><span class="vol">${t.volume}</span></div>
+    <div class="detail-body"><div class="detail-section"><h3>장비 스펙</h3><div class="spec-row"><span class="spec-label">바닥재</span><span class="spec-value">${t.substrate}</span></div><div class="spec-row"><span class="spec-label">여과</span><span class="spec-value">${t.filter}</span></div><div class="spec-row"><span class="spec-label">조명</span><span class="spec-value">${t.light}</span></div><div class="spec-row"><span class="spec-label">장비</span><span class="spec-value">${eq}</span></div>${co2}</div>
+    <div class="detail-section"><h3>평가</h3><div class="rating-grid">${ratings}</div></div>
+    <div class="detail-section"><h3>생물</h3><div class="fauna-list">${fauna}</div></div>
+    <div class="detail-section"><h3>수초</h3><div class="flora-list">${flora}</div></div>
+    <div class="detail-section full-width"><h3>개선 권고사항</h3><div class="rec-list">${recs}</div></div></div>`;
 }
-
 function renderPriorities(){
-  const el=document.getElementById('priorities');
-  const stars={3:'!!!',2:'!!',1:'!'};
-  const items=data.priorities.map(p=>`
-    <div class="pri-item">
-      <div class="pri-level pri-${p.level}">${stars[p.level]}</div>
-      <div class="pri-content">
-        <div class="pri-target">${p.target}</div>
-        <div class="pri-detail">${p.detail}</div>
-      </div>
-    </div>`).join('');
-  el.innerHTML=`<h2>우선순위 과제</h2><div class="pri-list">${items}</div>`;
+  const el=document.getElementById('priorities');const s={3:'!!!',2:'!!',1:'!'};
+  el.innerHTML=`<h2>우선순위 과제</h2><div class="pri-list">${data.priorities.map(p=>`<div class="pri-item"><div class="pri-level pri-${p.level}">${s[p.level]}</div><div class="pri-content"><div class="pri-target">${p.target}</div><div class="pri-detail">${p.detail}</div></div></div>`).join('')}</div>`;
 }
-
+function renderStatus(){
+  document.getElementById('statusCards').innerHTML=data.tanks.map(t=>{
+    const fa=t.fauna.map(f=>{const cls=f.type==='fish'?'fish-tag':f.type==='shrimp'?'shrimp-tag':'snail-tag';
+      const cnt=typeof f.count==='number'?` ×${f.count}`:` (${f.count})`;return`<span class="${cls}">${f.name}${cnt}</span>`;}).join('');
+    const fl=t.flora.map(f=>`<span class="plant-tag">${f}</span>`).join('');
+    const co2=t.co2?`<div class="st-cell"><div class="st-cell-label">CO2</div><div class="st-cell-value"><strong>${t.co2}</strong></div></div>`:'';
+    const eq=t.equipment.length?t.equipment.join('<br>'):'—';
+    return`<div class="st-card"><div class="st-card-header"><div class="st-tank-num">${t.id}</div><div class="st-card-title"><span class="st-name">${t.name}</span><span class="st-tag">${t.concept} · ${t.volume}</span></div></div>
+      <div class="st-card-body"><div class="st-cell"><div class="st-cell-label">바닥재</div><div class="st-cell-value"><strong>${t.substrate}</strong></div></div>
+      <div class="st-cell"><div class="st-cell-label">여과 시스템</div><div class="st-cell-value"><strong>${t.filter}</strong></div></div>
+      <div class="st-cell"><div class="st-cell-label">조명</div><div class="st-cell-value"><strong>${t.light}</strong></div></div>
+      <div class="st-cell"><div class="st-cell-label">장비</div><div class="st-cell-value">${eq}</div></div>${co2}
+      <div class="st-bio"><div class="st-cell"><div class="st-cell-label">생물 라인업</div><div class="tag-list">${fa}</div></div>
+      <div class="st-cell"><div class="st-cell-label">수초</div><div class="tag-list">${fl}</div></div></div></div></div>`;
+  }).join('');
+}
 init();
 </script>
 </body>
