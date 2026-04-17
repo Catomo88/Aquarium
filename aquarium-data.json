@@ -2,7 +2,7 @@
   "meta": {
     "owner": "Qlee",
     "title": "원준이네 아쿠아스케이핑",
-    "lastUpdated": "2026-04-07",
+    "lastUpdated": "2026-04-17",
     "totalTanks": 5
   },
   "tanks": [
@@ -16,6 +16,7 @@
       "light": "위크아쿠아 Z400 (광량 50%, 5시간)",
       "equipment": ["100W 히터", "자동환수시스템"],
       "co2": null,
+      "flourishExcel": "1.5ml/일 (이끼 억제)",
       "fauna": [
         {"name": "네온 테트라", "count": 16, "type": "fish"},
         {"name": "러미노즈", "count": 6, "type": "fish"},
@@ -46,9 +47,10 @@
       "volume": "약 27L",
       "substrate": "샌드 (중앙 화분에 소일, 신규 교체)",
       "filter": "페이토 LQ350 외부여과기",
-      "light": "메탈라이트 300 (광량 70%, 5시간)",
+      "light": "메탈라이트 300 (광량 60%, 5시간)",
       "equipment": ["100W 히터", "자동환수시스템"],
-      "co2": "D701 고압이탄 (2구 분배기, 초당 1방울)",
+      "co2": "D701 고압이탄 (2구 분배기, 3초당 1방울)",
+      "flourishExcel": "0.75ml/일 (이끼 억제)",
       "fauna": [
         {"name": "백운산", "count": 5, "type": "fish"},
         {"name": "골든 백운산", "count": 5, "type": "fish"},
@@ -76,9 +78,10 @@
       "volume": "약 27L",
       "substrate": "소일",
       "filter": "페이토 LQ350 외부여과기",
-      "light": "메탈라이트 300 (광량 70%, 5시간)",
+      "light": "메탈라이트 300 (광량 80%, 5시간)",
       "equipment": ["100W 히터", "자동환수시스템"],
-      "co2": "D701 고압이탄 (2구 분배기, 초당 1방울)",
+      "co2": "D701 고압이탄 (2구 분배기, 2초당 1방울)",
+      "flourishExcel": "0.75ml/일 (이끼 억제)",
       "fauna": [
         {"name": "그린네온테트라", "count": 9, "type": "fish"},
         {"name": "라스보라 쿠보타이", "count": 9, "type": "fish"},
@@ -139,7 +142,7 @@
       "volume": "약 8L",
       "substrate": "소일",
       "filter": "스펀지 여과기",
-      "light": "메탈라이트 200 (광량 70%, 5시간)",
+      "light": "메탈라이트 200 (광량 80%, 5시간)",
       "equipment": ["10W 히터"],
       "co2": "미니 고압이탄 (3~4초당 1방울)",
       "fauna": [
