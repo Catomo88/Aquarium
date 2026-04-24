@@ -17,7 +17,8 @@
   --orange:#fb923c;--orange-bg:rgba(251,146,60,.1);--orange-bd:rgba(251,146,60,.25);
 }
 body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0}
-.banner{width:100%;display:block}
+.banner{width:100%;display:none}
+@media(max-width:768px){.banner{display:block}}
 .header{background:linear-gradient(135deg,#0f2440,#1a3a5c);padding:12px 40px 0;border-bottom:1px solid var(--border)}
 .header h1{font-size:18px;color:#fff;font-weight:700;margin-bottom:2px}
 .header p{font-size:12px;color:var(--text2)}
