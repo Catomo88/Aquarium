@@ -17,6 +17,8 @@
   --orange:#fb923c;--orange-bg:rgba(251,146,60,.1);--orange-bd:rgba(251,146,60,.25);
 }
 body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0}
+.banner{width:100%;max-height:280px;object-fit:cover;display:block}
+@media(max-width:600px){.banner{max-height:140px}}
 .header{background:linear-gradient(135deg,#0f2440,#1a3a5c);padding:24px 40px 0;border-bottom:1px solid var(--border)}
 .header h1{font-size:24px;color:#fff;font-weight:700;margin-bottom:4px}
 .header p{font-size:13px;color:var(--text2)}
@@ -130,6 +132,7 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 </style>
 </head>
 <body>
+<img src="banner.jpg" alt="Triple Aquatic Symphony" class="banner">
 <div class="header">
   <h1>원준이네 아쿠아스케이핑</h1>
   <p>어항 종합 관리</p>
