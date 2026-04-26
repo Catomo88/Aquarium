@@ -22,20 +22,29 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 .cam-fab{display:none;position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(59,158,206,.4);z-index:999;transition:transform .2s}
 .cam-fab:active{transform:scale(.9)}
 @media(max-width:768px){.cam-fab{display:flex;align-items:center;justify-content:center}}
-.sum-thumb{width:100%;height:80px;border-radius:8px;overflow:hidden;margin-top:8px;background:rgba(255,255,255,.03);border:1px solid var(--border)}
+.sum-card{display:flex;gap:12px;align-items:stretch}
+.sum-card-info{flex:1;min-width:0}
+.sum-thumb{width:64px;height:64px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.03);border:1px solid var(--border);flex-shrink:0;align-self:center}
 .sum-thumb img{width:100%;height:100%;object-fit:cover}
-.sum-thumb .no-photo{display:flex;align-items:center;justify-content:center;height:100%;font-size:11px;color:var(--text3)}
+.sum-thumb .no-photo{display:flex;align-items:center;justify-content:center;height:100%;font-size:9px;color:var(--text3)}
 .history-main{max-width:1200px;margin:0 auto;padding:24px 28px}
 .history-filter{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
 .history-filter .hf-btn{padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
 .history-filter .hf-btn.active{border-color:var(--accent);color:#fff;background:rgba(59,158,206,.15)}
-.history-tank{margin-bottom:32px}
-.history-tank h3{font-size:16px;color:#fff;margin-bottom:12px;font-weight:600}
-.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
-.history-item{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s}
+.history-tank{margin-bottom:28px;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.history-tank-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.history-tank-header h3{font-size:15px;color:#fff;font-weight:600}
+.history-tank-header .photo-count{font-size:12px;color:var(--text3)}
+.history-strip{display:flex;gap:12px;padding:16px 20px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.history-strip::-webkit-scrollbar{height:4px}
+.history-strip::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.history-item{flex-shrink:0;width:180px;scroll-snap-align:start;cursor:pointer;transition:all .2s;border-radius:10px;overflow:hidden;border:2px solid transparent;background:var(--card2)}
 .history-item:hover{border-color:var(--accent);transform:translateY(-2px)}
+.history-item.latest{border-color:var(--green)}
 .history-item img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
-.history-item .hi-date{padding:8px 12px;font-size:12px;color:var(--text2)}
+.history-item .hi-meta{padding:6px 10px}
+.history-item .hi-date{font-size:11px;color:var(--text2)}
+.history-item .hi-tag{font-size:9px;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .history-empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px}
 .lightbox{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:1000;align-items:center;justify-content:center;flex-direction:column;cursor:pointer}
 .lightbox.show{display:flex}
@@ -236,8 +245,8 @@ function renderSummary(){
     if(c.snail)b+=`<span class="badge badge-snail">스네일 ${c.snail}</span>`;
     if(t.co2)b+=`<span class="badge badge-co2">CO2</span>`;
     if(t.equipment.includes('자동환수시스템'))b+=`<span class="badge badge-auto">자동환수</span>`;
-    const thumb=`<div class="sum-thumb"><img src="photos/tank-${t.id}/latest.jpg" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'>📷 사진 없음</div>'"></div>`;
-    return`<div class="sum-card" onclick="selectTank(${i})"><div class="num">${t.id}번 수조</div><div class="name">${t.name}</div><div class="concept">${t.concept} · ${t.volume}</div>${thumb}<div class="badges">${b}</div></div>`;
+    const thumb=`<div class="sum-thumb"><img src="photos/tank-${t.id}/latest.jpg" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'>📷</div>'"></div>`;
+    return`<div class="sum-card" onclick="selectTank(${i})"><div class="sum-card-info"><div class="num">${t.id}번 수조</div><div class="name">${t.name}</div><div class="concept">${t.concept} · ${t.volume}</div><div class="badges">${b}</div></div>${thumb}</div>`;
   }).join('');
 }
 function selectTank(idx){
@@ -331,9 +340,10 @@ function renderHistoryContent(){
     const photos=historyCache[folder]||[];
     if(photos.length===0)continue;
     hasPhotos=true;
-    html+=`<div class="history-tank"><h3>${tankNames[folder]||folder}</h3><div class="history-grid">`;
-    photos.forEach(p=>{
-      html+=`<div class="history-item" onclick="openLightbox('${p.url}','${tankNames[folder]} — ${p.date}')"><img src="${p.url}" loading="lazy"><div class="hi-date">${p.date}</div></div>`;
+    html+=`<div class="history-tank"><div class="history-tank-header"><h3>${tankNames[folder]||folder}</h3><span class="photo-count">${photos.length}장</span></div><div class="history-strip">`;
+    photos.forEach((p,i)=>{
+      const isLatest=i===0;
+      html+=`<div class="history-item${isLatest?' latest':''}" onclick="openLightbox('${p.url}','${tankNames[folder]} — ${p.date}')"><img src="${p.url}" loading="lazy"><div class="hi-meta">${isLatest?'<div class="hi-tag">최신</div>':''}<div class="hi-date">${p.date}</div></div></div>`;
     });
     html+=`</div></div>`;
   }

@@ -96,7 +96,9 @@ input:focus{border-color:var(--accent)}
     </div>
   </div>
   <p class="multi-note">복수 선택 가능 — 같은 사진을 여러 수조에 등록</p>
-  <button class="btn btn-primary" onclick="openCamera()">카메라 열기</button>
+  <button class="btn btn-primary" onclick="openCamera()">📷 카메라 촬영</button>
+  <button class="btn btn-outline" onclick="document.getElementById('galleryInput').click()">🖼️ 갤러리에서 선택</button>
+  <input type="file" id="galleryInput" accept="image/*" style="display:none" onchange="handleGallery(event)">
   <div class="status" id="tankStatus"></div>
 </div>
 
@@ -310,6 +312,43 @@ function cancelCamera() {
 
 function retake() {
   openCamera();
+}
+
+function handleGallery(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (selectedTanks.length === 0) {
+    document.getElementById('tankStatus').textContent = '수조를 먼저 선택하세요';
+    document.getElementById('tankStatus').className = 'status error';
+    event.target.value = '';
+    return;
+  }
+
+  // Resize if too large
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    let w = img.width, h = img.height;
+    const maxDim = 1920;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+      else { w = Math.round(w * maxDim / h); h = maxDim; }
+    }
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    canvas.toBlob(blob => {
+      photoBlob = blob;
+      document.getElementById('previewImg').src = URL.createObjectURL(blob);
+      const label = selectedTanks.includes('all') ? '전체' : selectedTanks.map(t => t + '번').join(', ');
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('ko-KR') + ' ' + now.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+      document.getElementById('uploadInfo').innerHTML =
+        `<strong>수조:</strong> ${label}<br><strong>선택:</strong> ${dateStr}<br><strong>크기:</strong> ${(blob.size/1024/1024).toFixed(1)}MB`;
+      showScreen('previewScreen');
+    }, 'image/jpeg', 0.85);
+  };
+  img.src = URL.createObjectURL(file);
+  event.target.value = '';
 }
 
 // ---- Upload ----
