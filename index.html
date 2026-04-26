@@ -19,6 +19,9 @@
 body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0}
 .banner{width:100%;display:none}
 @media(max-width:768px){.banner{display:block}}
+.cam-fab{display:none;position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(59,158,206,.4);z-index:999;transition:transform .2s}
+.cam-fab:active{transform:scale(.9)}
+@media(max-width:768px){.cam-fab{display:flex;align-items:center;justify-content:center}}
 .header{background:linear-gradient(135deg,#0f2440,#1a3a5c);padding:12px 40px 0;border-bottom:1px solid var(--border)}
 .header h1{font-size:18px;color:#fff;font-weight:700;margin-bottom:2px}
 .header p{font-size:12px;color:var(--text2)}
@@ -133,6 +136,7 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 </head>
 <body>
 <img src="banner.jpg" alt="Triple Aquatic Symphony" class="banner">
+<button class="cam-fab" onclick="window.location.href='camera.html'" title="어항 카메라">📷</button>
 <div class="header">
   <h1>원준이네 아쿠아스케이핑</h1>
   <p>어항 종합 관리</p>
