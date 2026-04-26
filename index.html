@@ -22,6 +22,25 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 .cam-fab{display:none;position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(59,158,206,.4);z-index:999;transition:transform .2s}
 .cam-fab:active{transform:scale(.9)}
 @media(max-width:768px){.cam-fab{display:flex;align-items:center;justify-content:center}}
+.sum-thumb{width:100%;height:80px;border-radius:8px;overflow:hidden;margin-top:8px;background:rgba(255,255,255,.03);border:1px solid var(--border)}
+.sum-thumb img{width:100%;height:100%;object-fit:cover}
+.sum-thumb .no-photo{display:flex;align-items:center;justify-content:center;height:100%;font-size:11px;color:var(--text3)}
+.history-main{max-width:1200px;margin:0 auto;padding:24px 28px}
+.history-filter{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.history-filter .hf-btn{padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.history-filter .hf-btn.active{border-color:var(--accent);color:#fff;background:rgba(59,158,206,.15)}
+.history-tank{margin-bottom:32px}
+.history-tank h3{font-size:16px;color:#fff;margin-bottom:12px;font-weight:600}
+.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.history-item{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s}
+.history-item:hover{border-color:var(--accent);transform:translateY(-2px)}
+.history-item img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.history-item .hi-date{padding:8px 12px;font-size:12px;color:var(--text2)}
+.history-empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px}
+.lightbox{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);z-index:1000;align-items:center;justify-content:center;flex-direction:column;cursor:pointer}
+.lightbox.show{display:flex}
+.lightbox img{max-width:95%;max-height:85%;object-fit:contain;border-radius:8px}
+.lightbox .lb-info{color:#fff;font-size:14px;margin-top:12px}
 .header{background:linear-gradient(135deg,#0f2440,#1a3a5c);padding:12px 40px 0;border-bottom:1px solid var(--border)}
 .header h1{font-size:18px;color:#fff;font-weight:700;margin-bottom:2px}
 .header p{font-size:12px;color:var(--text2)}
@@ -144,6 +163,7 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
   <div class="tabs" id="tabBar">
     <div class="tab active" data-tab="dashboard">대시보드</div>
     <div class="tab" data-tab="status">세팅 현황표</div>
+    <div class="tab" data-tab="history">어항 히스토리</div>
   </div>
 </div>
 <div class="tab-content active" id="tab-dashboard">
@@ -152,6 +172,15 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
     <div class="detail" id="detailPanel"></div>
     <div class="priorities" id="priorities"></div>
   </div>
+</div>
+<div class="tab-content" id="tab-history">
+  <div class="history-main">
+    <div class="history-filter" id="historyFilter"></div>
+    <div id="historyContent"></div>
+  </div>
+</div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lbImg"><div class="lb-info" id="lbInfo"></div>
 </div>
 <div class="tab-content" id="tab-status">
   <div class="main">
@@ -207,7 +236,8 @@ function renderSummary(){
     if(c.snail)b+=`<span class="badge badge-snail">스네일 ${c.snail}</span>`;
     if(t.co2)b+=`<span class="badge badge-co2">CO2</span>`;
     if(t.equipment.includes('자동환수시스템'))b+=`<span class="badge badge-auto">자동환수</span>`;
-    return`<div class="sum-card" onclick="selectTank(${i})"><div class="num">${t.id}번 수조</div><div class="name">${t.name}</div><div class="concept">${t.concept} · ${t.volume}</div><div class="badges">${b}</div></div>`;
+    const thumb=`<div class="sum-thumb"><img src="photos/tank-${t.id}/latest.jpg" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'>📷 사진 없음</div>'"></div>`;
+    return`<div class="sum-card" onclick="selectTank(${i})"><div class="num">${t.id}번 수조</div><div class="name">${t.name}</div><div class="concept">${t.concept} · ${t.volume}</div>${thumb}<div class="badges">${b}</div></div>`;
   }).join('');
 }
 function selectTank(idx){
@@ -254,6 +284,76 @@ function renderStatus(){
       <div class="st-cell"><div class="st-cell-label">수초</div><div class="tag-list">${fl}</div></div></div></div></div>`;
   }).join('');
 }
+const GITHUB_API='https://api.github.com/repos/Catomo88/Aquarium/contents/photos';
+let historyCache={};
+let activeHistoryFilter='all';
+
+function renderHistoryFilter(){
+  const el=document.getElementById('historyFilter');
+  const btns=[{id:'all',label:'전체'}];
+  data.tanks.forEach(t=>btns.push({id:'tank-'+t.id,label:t.id+'번 '+t.name}));
+  btns.push({id:'panorama',label:'★ 파노라마'});
+  el.innerHTML=btns.map(b=>`<div class="hf-btn${b.id===activeHistoryFilter?' active':''}" onclick="filterHistory('${b.id}')">${b.label}</div>`).join('');
+}
+
+function filterHistory(id){
+  activeHistoryFilter=id;
+  renderHistoryFilter();
+  renderHistoryContent();
+}
+
+async function loadHistory(){
+  renderHistoryFilter();
+  const folders=['tank-1','tank-2','tank-3','tank-4','tank-5','panorama'];
+  for(const folder of folders){
+    if(historyCache[folder])continue;
+    try{
+      const res=await fetch(`${GITHUB_API}/${folder}`,{headers:{'Accept':'application/vnd.github.v3+json'}});
+      if(!res.ok){historyCache[folder]=[];continue;}
+      const files=await res.json();
+      historyCache[folder]=files.filter(f=>f.name!=='latest.jpg'&&f.name.endsWith('.jpg')).map(f=>({
+        name:f.name,
+        url:f.download_url,
+        date:f.name.replace('.jpg','').replace('_',' ').replace(/(\d{4})-(\d{2})-(\d{2}) (\d{2})(\d{2})/,'$1.$2.$3 $4:$5')
+      })).sort((a,b)=>b.name.localeCompare(a.name));
+    }catch(e){historyCache[folder]=[];}
+  }
+  renderHistoryContent();
+}
+
+function renderHistoryContent(){
+  const el=document.getElementById('historyContent');
+  const folders=activeHistoryFilter==='all'?['tank-1','tank-2','tank-3','tank-4','tank-5','panorama']:[activeHistoryFilter];
+  const tankNames={'tank-1':'1번 2자 슬림','tank-2':'2번 30하이큐브 샌드항','tank-3':'3번 30하이큐브 수초항','tank-4':'4번 20하이큐브 샌드항','tank-5':'5번 20하이큐브 수초항','panorama':'★ 파노라마'};
+  let html='';
+  let hasPhotos=false;
+  for(const folder of folders){
+    const photos=historyCache[folder]||[];
+    if(photos.length===0)continue;
+    hasPhotos=true;
+    html+=`<div class="history-tank"><h3>${tankNames[folder]||folder}</h3><div class="history-grid">`;
+    photos.forEach(p=>{
+      html+=`<div class="history-item" onclick="openLightbox('${p.url}','${tankNames[folder]} — ${p.date}')"><img src="${p.url}" loading="lazy"><div class="hi-date">${p.date}</div></div>`;
+    });
+    html+=`</div></div>`;
+  }
+  if(!hasPhotos)html=`<div class="history-empty">📷 아직 업로드된 사진이 없습니다.<br>카메라 버튼으로 첫 사진을 찍어보세요!</div>`;
+  el.innerHTML=html;
+}
+
+function openLightbox(url,info){
+  document.getElementById('lbImg').src=url;
+  document.getElementById('lbInfo').textContent=info;
+  document.getElementById('lightbox').classList.add('show');
+}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('show')}
+
+// Load history when tab is clicked
+document.getElementById('tabBar').addEventListener('click',function(e){
+  const t=e.target.closest('.tab');
+  if(t&&t.dataset.tab==='history')loadHistory();
+});
+
 init();
 </script>
 </body>
