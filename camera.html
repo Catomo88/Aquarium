@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>어항 카메라</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0b1929;--card:#111e30;--border:rgba(255,255,255,.1);--accent:#3b9ece;--text:#d0dce8;--text2:#7a99b4}
+body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px}
+h1{font-size:20px;margin-bottom:16px;color:#fff}
+.screen{display:none;width:100%;max-width:420px;flex-direction:column;align-items:center;gap:16px}
+.screen.active{display:flex}
+input[type="password"],input[type="text"]{width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:16px;outline:none}
+input:focus{border-color:var(--accent)}
+.btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#2d8ab8}
+.btn-danger{background:#dc2626;color:#fff}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.tank-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.tank-btn{padding:20px 12px;border-radius:14px;border:2px solid var(--border);background:var(--card);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;text-align:center;transition:all .2s}
+.tank-btn.selected{border-color:var(--accent);background:rgba(59,158,206,.15);color:#fff}
+.tank-btn .num{font-size:28px;font-weight:800;display:block;margin-bottom:4px}
+.tank-btn .label{font-size:11px;color:var(--text2)}
+.tank-btn.selected .label{color:var(--accent)}
+.preview-area{width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#000;position:relative}
+.preview-area img{width:100%;height:100%;object-fit:cover}
+.preview-area video{width:100%;height:100%;object-fit:cover}
+.status{font-size:13px;color:var(--text2);text-align:center;padding:8px;min-height:40px}
+.status.error{color:#f87171}
+.status.success{color:#34d399}
+.cam-controls{display:flex;gap:10px;width:100%}
+.cam-controls .btn{flex:1}
+.shutter{width:72px;height:72px;border-radius:50%;border:4px solid #fff;background:rgba(255,255,255,.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s}
+.shutter:active{transform:scale(.9);background:rgba(255,255,255,.4)}
+.shutter-inner{width:56px;height:56px;border-radius:50%;background:#fff}
+.cam-row{display:flex;align-items:center;justify-content:center;gap:20px;width:100%}
+.icon-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px}
+.result-info{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;width:100%;font-size:13px;line-height:1.8;color:var(--text2)}
+.result-info strong{color:#fff}
+.pin-dots{display:flex;gap:12px;justify-content:center;margin:8px 0}
+.multi-note{font-size:12px;color:var(--text2);text-align:center}
+.reset-link{font-size:12px;color:var(--text2);text-decoration:underline;cursor:pointer;margin-top:8px}
+</style>
+</head>
+<body>
+
+<!-- Screen 1: Setup (first time) -->
+<div class="screen" id="setupScreen">
+  <h1>🐠 어항 카메라 설정</h1>
+  <p style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:8px">GitHub 토큰을 입력하고 PIN을 설정하세요.<br>토큰은 암호화되어 이 기기에만 저장됩니다.</p>
+  <input type="text" id="tokenInput" placeholder="GitHub Personal Access Token">
+  <input type="password" id="pinSetup" placeholder="PIN 설정 (4자리 이상)" inputmode="numeric">
+  <input type="password" id="pinConfirm" placeholder="PIN 확인" inputmode="numeric">
+  <button class="btn btn-primary" onclick="setupToken()">저장</button>
+  <div class="status" id="setupStatus"></div>
+</div>
+
+<!-- Screen 2: PIN unlock -->
+<div class="screen" id="pinScreen">
+  <h1>🔐 PIN 입력</h1>
+  <input type="password" id="pinUnlock" placeholder="PIN 입력" inputmode="numeric">
+  <button class="btn btn-primary" onclick="unlockWithPin()">확인</button>
+  <div class="status" id="pinStatus"></div>
+  <span class="reset-link" onclick="resetAll()">토큰 초기화</span>
+</div>
+
+<!-- Screen 3: Tank selection -->
+<div class="screen" id="tankScreen">
+  <h1>📷 어항 선택</h1>
+  <div class="tank-grid">
+    <div class="tank-btn" data-tank="1" onclick="toggleTank(this)">
+      <span class="num">1</span>
+      <span class="label">2자 슬림<br>메인 커뮤니티</span>
+    </div>
+    <div class="tank-btn" data-tank="2" onclick="toggleTank(this)">
+      <span class="num">2</span>
+      <span class="label">30하이큐브<br>소형어 샌드항</span>
+    </div>
+    <div class="tank-btn" data-tank="3" onclick="toggleTank(this)">
+      <span class="num">3</span>
+      <span class="label">30하이큐브<br>메인 수초항</span>
+    </div>
+    <div class="tank-btn" data-tank="4" onclick="toggleTank(this)">
+      <span class="num">4</span>
+      <span class="label">20하이큐브<br>서브 샌드항</span>
+    </div>
+    <div class="tank-btn" data-tank="5" onclick="toggleTank(this)">
+      <span class="num">5</span>
+      <span class="label">20하이큐브<br>서브 수초항</span>
+    </div>
+    <div class="tank-btn" data-tank="all" onclick="toggleTank(this)">
+      <span class="num">★</span>
+      <span class="label">전체<br>파노라마</span>
+    </div>
+  </div>
+  <p class="multi-note">복수 선택 가능 — 같은 사진을 여러 수조에 등록</p>
+  <button class="btn btn-primary" onclick="openCamera()">카메라 열기</button>
+  <div class="status" id="tankStatus"></div>
+</div>
+
+<!-- Screen 4: Camera -->
+<div class="screen" id="cameraScreen">
+  <h1 id="camTitle">📷 촬영</h1>
+  <div class="preview-area">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none"></canvas>
+  </div>
+  <div class="cam-row">
+    <div class="icon-btn" onclick="switchCamera()">🔄</div>
+    <div class="shutter" onclick="takePhoto()"><div class="shutter-inner"></div></div>
+    <div class="icon-btn" onclick="cancelCamera()">✕</div>
+  </div>
+</div>
+
+<!-- Screen 5: Preview & Upload -->
+<div class="screen" id="previewScreen">
+  <h1>📤 업로드 확인</h1>
+  <div class="preview-area">
+    <img id="previewImg">
+  </div>
+  <div class="result-info" id="uploadInfo"></div>
+  <div class="cam-controls">
+    <button class="btn btn-outline" onclick="retake()">다시 찍기</button>
+    <button class="btn btn-primary" onclick="uploadPhoto()">업로드</button>
+  </div>
+  <div class="status" id="uploadStatus"></div>
+</div>
+
+<!-- Screen 6: Done -->
+<div class="screen" id="doneScreen">
+  <h1>✅ 업로드 완료</h1>
+  <div class="result-info" id="doneInfo"></div>
+  <button class="btn btn-primary" onclick="goToTankSelect()">다른 수조 촬영</button>
+  <button class="btn btn-outline" onclick="window.open('https://catomo88.github.io/Aquarium/','_blank')">대시보드 열기</button>
+</div>
+
+<script>
+const REPO_OWNER = 'Catomo88';
+const REPO_NAME = 'Aquarium';
+let decryptedToken = null;
+let selectedTanks = [];
+let currentStream = null;
+let facingMode = 'environment';
+let photoBlob = null;
+
+// ---- Crypto helpers ----
+async function deriveKey(pin, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(pin), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
+    keyMaterial,
+    {name:'AES-GCM', length:256},
+    false,
+    ['encrypt','decrypt']
+  );
+}
+
+async function encryptToken(token, pin) {
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(pin, salt);
+  const encrypted = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(token));
+  return {
+    salt: btoa(String.fromCharCode(...salt)),
+    iv: btoa(String.fromCharCode(...iv)),
+    data: btoa(String.fromCharCode(...new Uint8Array(encrypted)))
+  };
+}
+
+async function decryptToken(stored, pin) {
+  const salt = Uint8Array.from(atob(stored.salt), c => c.charCodeAt(0));
+  const iv = Uint8Array.from(atob(stored.iv), c => c.charCodeAt(0));
+  const data = Uint8Array.from(atob(stored.data), c => c.charCodeAt(0));
+  const key = await deriveKey(pin, salt);
+  const decrypted = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
+  return new TextDecoder().decode(decrypted);
+}
+
+// ---- Setup ----
+async function setupToken() {
+  const token = document.getElementById('tokenInput').value.trim();
+  const pin = document.getElementById('pinSetup').value;
+  const pinC = document.getElementById('pinConfirm').value;
+  const status = document.getElementById('setupStatus');
+
+  if (!token) { status.textContent = '토큰을 입력하세요'; status.className = 'status error'; return; }
+  if (pin.length < 4) { status.textContent = 'PIN은 4자리 이상이어야 합니다'; status.className = 'status error'; return; }
+  if (pin !== pinC) { status.textContent = 'PIN이 일치하지 않습니다'; status.className = 'status error'; return; }
+
+  try {
+    status.textContent = '암호화 중...'; status.className = 'status';
+    const encrypted = await encryptToken(token, pin);
+    localStorage.setItem('aq_token', JSON.stringify(encrypted));
+    decryptedToken = token;
+    showScreen('tankScreen');
+  } catch(e) {
+    status.textContent = '오류: ' + e.message; status.className = 'status error';
+  }
+}
+
+async function unlockWithPin() {
+  const pin = document.getElementById('pinUnlock').value;
+  const status = document.getElementById('pinStatus');
+  const stored = JSON.parse(localStorage.getItem('aq_token'));
+
+  try {
+    status.textContent = '복호화 중...'; status.className = 'status';
+    decryptedToken = await decryptToken(stored, pin);
+    showScreen('tankScreen');
+  } catch(e) {
+    status.textContent = 'PIN이 틀렸습니다'; status.className = 'status error';
+  }
+}
+
+function resetAll() {
+  if (confirm('토큰을 초기화하시겠습니까? 다시 입력해야 합니다.')) {
+    localStorage.removeItem('aq_token');
+    showScreen('setupScreen');
+  }
+}
+
+// ---- Tank selection ----
+function toggleTank(el) {
+  const tank = el.dataset.tank;
+  if (tank === 'all') {
+    // Toggle all
+    const allSelected = el.classList.contains('selected');
+    document.querySelectorAll('.tank-btn').forEach(b => b.classList.remove('selected'));
+    selectedTanks = [];
+    if (!allSelected) {
+      el.classList.add('selected');
+      selectedTanks = ['all'];
+    }
+    return;
+  }
+  // Deselect "all" if individual selected
+  document.querySelector('[data-tank="all"]').classList.remove('selected');
+  selectedTanks = selectedTanks.filter(t => t !== 'all');
+
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    selectedTanks = selectedTanks.filter(t => t !== tank);
+  } else {
+    el.classList.add('selected');
+    selectedTanks.push(tank);
+  }
+}
+
+// ---- Camera ----
+async function openCamera() {
+  if (selectedTanks.length === 0) {
+    document.getElementById('tankStatus').textContent = '수조를 선택하세요';
+    document.getElementById('tankStatus').className = 'status error';
+    return;
+  }
+  const label = selectedTanks.includes('all') ? '전체' : selectedTanks.map(t => t + '번').join(', ');
+  document.getElementById('camTitle').textContent = '📷 ' + label + ' 촬영';
+
+  try {
+    currentStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: {ideal:1920}, height: {ideal:1440} },
+      audio: false
+    });
+    document.getElementById('video').srcObject = currentStream;
+    showScreen('cameraScreen');
+  } catch(e) {
+    document.getElementById('tankStatus').textContent = '카메라 접근 실패: ' + e.message;
+    document.getElementById('tankStatus').className = 'status error';
+  }
+}
+
+async function switchCamera() {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+  currentStream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode, width: {ideal:1920}, height: {ideal:1440} },
+    audio: false
+  });
+  document.getElementById('video').srcObject = currentStream;
+}
+
+function takePhoto() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+
+  canvas.toBlob(blob => {
+    photoBlob = blob;
+    document.getElementById('previewImg').src = URL.createObjectURL(blob);
+    const label = selectedTanks.includes('all') ? '전체' : selectedTanks.map(t => t + '번').join(', ');
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('ko-KR') + ' ' + now.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+    document.getElementById('uploadInfo').innerHTML =
+      `<strong>수조:</strong> ${label}<br><strong>촬영:</strong> ${dateStr}<br><strong>크기:</strong> ${(blob.size/1024/1024).toFixed(1)}MB`;
+    if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+    showScreen('previewScreen');
+  }, 'image/jpeg', 0.85);
+}
+
+function cancelCamera() {
+  if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+  showScreen('tankScreen');
+}
+
+function retake() {
+  openCamera();
+}
+
+// ---- Upload ----
+async function uploadPhoto() {
+  const status = document.getElementById('uploadStatus');
+  status.textContent = '업로드 중...'; status.className = 'status';
+
+  try {
+    const reader = new FileReader();
+    const base64 = await new Promise((resolve, reject) => {
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(photoBlob);
+    });
+
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0,10);
+    const timeStr = now.toTimeString().slice(0,5).replace(':','');
+    const tanks = selectedTanks.includes('all') ? ['1','2','3','4','5','all'] : selectedTanks;
+    const results = [];
+
+    for (const tank of tanks) {
+      const folder = tank === 'all' ? 'panorama' : `tank-${tank}`;
+      const filename = `${dateStr}_${timeStr}.jpg`;
+      const path = `photos/${folder}/${filename}`;
+
+      // Also update latest
+      const latestPath = `photos/${folder}/latest.jpg`;
+
+      // Upload timestamped photo
+      const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${decryptedToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `📷 ${folder} ${dateStr} ${timeStr}`,
+          content: base64
+        })
+      });
+
+      if (!res.ok) throw new Error(`${folder} 업로드 실패: ${res.status}`);
+
+      // Update latest.jpg (get sha first if exists)
+      let sha = null;
+      const check = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${latestPath}`, {
+        headers: { 'Authorization': `Bearer ${decryptedToken}` }
+      });
+      if (check.ok) {
+        const existing = await check.json();
+        sha = existing.sha;
+      }
+
+      const latestBody = {
+        message: `📷 ${folder} latest 갱신`,
+        content: base64
+      };
+      if (sha) latestBody.sha = sha;
+
+      await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${latestPath}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${decryptedToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(latestBody)
+      });
+
+      results.push(folder);
+    }
+
+    const label = results.join(', ');
+    document.getElementById('doneInfo').innerHTML =
+      `<strong>업로드 완료!</strong><br>폴더: ${label}<br>파일: ${dateStr}_${timeStr}.jpg<br>latest.jpg도 갱신되었습니다.`;
+    showScreen('doneScreen');
+  } catch(e) {
+    status.textContent = '오류: ' + e.message; status.className = 'status error';
+  }
+}
+
+// ---- Navigation ----
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goToTankSelect() {
+  selectedTanks = [];
+  document.querySelectorAll('.tank-btn').forEach(b => b.classList.remove('selected'));
+  showScreen('tankScreen');
+}
+
+// ---- Init ----
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('aq_token')) {
+    showScreen('pinScreen');
+  } else {
+    showScreen('setupScreen');
+  }
+});
+</script>
+</body>
+</html>
