@@ -301,7 +301,7 @@ function renderHistoryFilter(){
   const el=document.getElementById('historyFilter');
   const btns=[{id:'all',label:'전체'}];
   data.tanks.forEach(t=>btns.push({id:'tank-'+t.id,label:t.id+'번 '+t.name}));
-  btns.push({id:'panorama',label:'★ 파노라마'});
+  btns.push({id:'panorama',label:'★ 1·2·3번 파노라마'});
   el.innerHTML=btns.map(b=>`<div class="hf-btn${b.id===activeHistoryFilter?' active':''}" onclick="filterHistory('${b.id}')">${b.label}</div>`).join('');
 }
 
@@ -333,7 +333,7 @@ async function loadHistory(){
 function renderHistoryContent(){
   const el=document.getElementById('historyContent');
   const folders=activeHistoryFilter==='all'?['tank-1','tank-2','tank-3','tank-4','tank-5','panorama']:[activeHistoryFilter];
-  const tankNames={'tank-1':'1번 2자 슬림','tank-2':'2번 30하이큐브 샌드항','tank-3':'3번 30하이큐브 수초항','tank-4':'4번 20하이큐브 샌드항','tank-5':'5번 20하이큐브 수초항','panorama':'★ 파노라마'};
+  const tankNames={'tank-1':'1번 2자 슬림','tank-2':'2번 30하이큐브 샌드항','tank-3':'3번 30하이큐브 수초항','tank-4':'4번 20하이큐브 샌드항','tank-5':'5번 20하이큐브 수초항','panorama':'★ 1·2·3번 파노라마'};
   let html='';
   let hasPhotos=false;
   for(const folder of folders){

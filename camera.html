@@ -90,9 +90,9 @@ input:focus{border-color:var(--accent)}
       <span class="num">5</span>
       <span class="label">20하이큐브<br>서브 수초항</span>
     </div>
-    <div class="tank-btn" data-tank="all" onclick="toggleTank(this)">
+    <div class="tank-btn" data-tank="panorama" onclick="toggleTank(this)">
       <span class="num">★</span>
-      <span class="label">전체<br>파노라마</span>
+      <span class="label">1·2·3번<br>파노라마</span>
     </div>
   </div>
   <p class="multi-note">복수 선택 가능 — 같은 사진을 여러 수조에 등록</p>
@@ -228,20 +228,20 @@ function resetAll() {
 // ---- Tank selection ----
 function toggleTank(el) {
   const tank = el.dataset.tank;
-  if (tank === 'all') {
-    // Toggle all
-    const allSelected = el.classList.contains('selected');
+  if (tank === 'panorama') {
+    const wasSelected = el.classList.contains('selected');
+    // Deselect all individual tanks
     document.querySelectorAll('.tank-btn').forEach(b => b.classList.remove('selected'));
     selectedTanks = [];
-    if (!allSelected) {
+    if (!wasSelected) {
       el.classList.add('selected');
-      selectedTanks = ['all'];
+      selectedTanks = ['panorama'];
     }
     return;
   }
-  // Deselect "all" if individual selected
-  document.querySelector('[data-tank="all"]').classList.remove('selected');
-  selectedTanks = selectedTanks.filter(t => t !== 'all');
+  // Deselect panorama if individual selected
+  document.querySelector('[data-tank="panorama"]').classList.remove('selected');
+  selectedTanks = selectedTanks.filter(t => t !== 'panorama');
 
   if (el.classList.contains('selected')) {
     el.classList.remove('selected');
@@ -259,7 +259,7 @@ async function openCamera() {
     document.getElementById('tankStatus').className = 'status error';
     return;
   }
-  const label = selectedTanks.includes('all') ? '전체' : selectedTanks.map(t => t + '번').join(', ');
+  const label = selectedTanks.includes('panorama') ? '1·2·3번 파노라마' : selectedTanks.map(t => t + '번').join(', ');
   document.getElementById('camTitle').textContent = '📷 ' + label + ' 촬영';
 
   try {
@@ -295,7 +295,7 @@ function takePhoto() {
   canvas.toBlob(blob => {
     photoBlob = blob;
     document.getElementById('previewImg').src = URL.createObjectURL(blob);
-    const label = selectedTanks.includes('all') ? '전체' : selectedTanks.map(t => t + '번').join(', ');
+    const label = selectedTanks.includes('panorama') ? '1·2·3번 파노라마' : selectedTanks.map(t => t + '번').join(', ');
     const now = new Date();
     const dateStr = now.toLocaleDateString('ko-KR') + ' ' + now.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
     document.getElementById('uploadInfo').innerHTML =
@@ -339,7 +339,7 @@ function handleGallery(event) {
     canvas.toBlob(blob => {
       photoBlob = blob;
       document.getElementById('previewImg').src = URL.createObjectURL(blob);
-      const label = selectedTanks.includes('all') ? '전체' : selectedTanks.map(t => t + '번').join(', ');
+      const label = selectedTanks.includes('panorama') ? '1·2·3번 파노라마' : selectedTanks.map(t => t + '번').join(', ');
       const now = new Date();
       const dateStr = now.toLocaleDateString('ko-KR') + ' ' + now.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
       document.getElementById('uploadInfo').innerHTML =
@@ -367,11 +367,11 @@ async function uploadPhoto() {
     const now = new Date();
     const dateStr = now.toISOString().slice(0,10);
     const timeStr = now.toTimeString().slice(0,5).replace(':','');
-    const tanks = selectedTanks.includes('all') ? ['1','2','3','4','5','all'] : selectedTanks;
+    const tanks = [...selectedTanks];
     const results = [];
 
     for (const tank of tanks) {
-      const folder = tank === 'all' ? 'panorama' : `tank-${tank}`;
+      const folder = tank === 'panorama' ? 'panorama' : `tank-${tank}`;
       const filename = `${dateStr}_${timeStr}.jpg`;
       const path = `photos/${folder}/${filename}`;
 
