@@ -1,0 +1,13 @@
+{
+  "name": "원준이네 아쿠아스케이핑",
+  "short_name": "아쿠아",
+  "description": "어항 종합 관리 대시보드",
+  "start_url": "/Aquarium/",
+  "display": "standalone",
+  "background_color": "#0b1929",
+  "theme_color": "#0b1929",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}
