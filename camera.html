@@ -24,9 +24,13 @@ input:focus{border-color:var(--accent)}
 .tank-btn .num{font-size:28px;font-weight:800;display:block;margin-bottom:4px}
 .tank-btn .label{font-size:11px;color:var(--text2)}
 .tank-btn.selected .label{color:var(--accent)}
-.preview-area{width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#000;position:relative}
+.preview-area{width:100%;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#000;position:relative}
 .preview-area img{width:100%;height:100%;object-fit:cover}
 .preview-area video{width:100%;height:100%;object-fit:cover}
+.zoom-controls{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.5);border-radius:20px;padding:6px 12px}
+.zoom-controls span{color:#fff;font-size:12px;font-weight:600;min-width:36px;text-align:center}
+.zoom-btn{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.zoom-btn:active{background:rgba(255,255,255,.3)}
 .status{font-size:13px;color:var(--text2);text-align:center;padding:8px;min-height:40px}
 .status.error{color:#f87171}
 .status.success{color:#34d399}
@@ -108,6 +112,11 @@ input:focus{border-color:var(--accent)}
   <div class="preview-area">
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas" style="display:none"></canvas>
+    <div class="zoom-controls">
+      <div class="zoom-btn" onclick="adjustZoom(-0.5)">−</div>
+      <span id="zoomLevel">1.0x</span>
+      <div class="zoom-btn" onclick="adjustZoom(0.5)">+</div>
+    </div>
   </div>
   <div class="cam-row">
     <div class="icon-btn" onclick="switchCamera()">🔄</div>
@@ -146,6 +155,9 @@ let selectedTanks = [];
 let currentStream = null;
 let facingMode = 'environment';
 let photoBlob = null;
+let currentZoom = 1;
+let maxZoom = 1;
+let videoTrack = null;
 
 // ---- Crypto helpers ----
 async function deriveKey(pin, salt) {
@@ -264,10 +276,12 @@ async function openCamera() {
 
   try {
     currentStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode, width: {ideal:1920}, height: {ideal:1440} },
+      video: { facingMode, width: {ideal:1440}, height: {ideal:1920} },
       audio: false
     });
     document.getElementById('video').srcObject = currentStream;
+    videoTrack = currentStream.getVideoTracks()[0];
+    initZoom();
     showScreen('cameraScreen');
   } catch(e) {
     document.getElementById('tankStatus').textContent = '카메라 접근 실패: ' + e.message;
@@ -275,14 +289,37 @@ async function openCamera() {
   }
 }
 
+function initZoom() {
+  currentZoom = 1;
+  maxZoom = 1;
+  document.getElementById('zoomLevel').textContent = '1.0x';
+  if (videoTrack && videoTrack.getCapabilities) {
+    const caps = videoTrack.getCapabilities();
+    if (caps.zoom) {
+      maxZoom = Math.min(caps.zoom.max, 10);
+      currentZoom = caps.zoom.min || 1;
+      document.getElementById('zoomLevel').textContent = currentZoom.toFixed(1) + 'x';
+    }
+  }
+}
+
+function adjustZoom(delta) {
+  if (!videoTrack || maxZoom <= 1) return;
+  currentZoom = Math.max(1, Math.min(maxZoom, currentZoom + delta));
+  videoTrack.applyConstraints({advanced: [{zoom: currentZoom}]});
+  document.getElementById('zoomLevel').textContent = currentZoom.toFixed(1) + 'x';
+}
+
 async function switchCamera() {
   facingMode = facingMode === 'environment' ? 'user' : 'environment';
   if (currentStream) currentStream.getTracks().forEach(t => t.stop());
   currentStream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode, width: {ideal:1920}, height: {ideal:1440} },
+    video: { facingMode, width: {ideal:1440}, height: {ideal:1920} },
     audio: false
   });
   document.getElementById('video').srcObject = currentStream;
+  videoTrack = currentStream.getVideoTracks()[0];
+  initZoom();
 }
 
 function takePhoto() {
