@@ -27,6 +27,8 @@ input:focus{border-color:var(--accent)}
 .preview-area{width:100%;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#000;position:relative}
 .preview-area img{width:100%;height:100%;object-fit:cover}
 .preview-area video{width:100%;height:100%;object-fit:cover}
+.ratio-toggle{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border-radius:20px;padding:6px 12px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.2)}
+.ratio-toggle:active{background:rgba(0,0,0,.7)}
 .zoom-controls{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.5);border-radius:20px;padding:6px 12px}
 .zoom-controls span{color:#fff;font-size:12px;font-weight:600;min-width:36px;text-align:center}
 .zoom-btn{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -112,6 +114,7 @@ input:focus{border-color:var(--accent)}
   <div class="preview-area">
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas" style="display:none"></canvas>
+    <div class="ratio-toggle" onclick="toggleRatio()">3:4</div>
     <div class="zoom-controls">
       <div class="zoom-btn" onclick="adjustZoom(-0.5)">−</div>
       <span id="zoomLevel">1.0x</span>
@@ -158,6 +161,7 @@ let photoBlob = null;
 let currentZoom = 1;
 let maxZoom = 1;
 let videoTrack = null;
+let aspectRatio = '3:4'; // default portrait
 
 // ---- Crypto helpers ----
 async function deriveKey(pin, salt) {
@@ -308,6 +312,13 @@ function adjustZoom(delta) {
   currentZoom = Math.max(1, Math.min(maxZoom, currentZoom + delta));
   videoTrack.applyConstraints({advanced: [{zoom: currentZoom}]});
   document.getElementById('zoomLevel').textContent = currentZoom.toFixed(1) + 'x';
+}
+
+function toggleRatio() {
+  aspectRatio = aspectRatio === '3:4' ? '4:3' : '3:4';
+  const area = document.querySelector('#cameraScreen .preview-area');
+  area.style.aspectRatio = aspectRatio === '3:4' ? '3/4' : '4/3';
+  document.querySelector('.ratio-toggle').textContent = aspectRatio;
 }
 
 async function switchCamera() {
