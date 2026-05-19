@@ -74,7 +74,7 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 .tab-content.active{display:block}
 .main{max-width:1400px;margin:0 auto;padding:24px 28px}
 .summary-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px}
-.sum-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s}
+.sum-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:all .2s}
 .sum-card:hover,.sum-card.active{border-color:var(--accent);background:var(--card2);transform:translateY(-2px);box-shadow:0 4px 20px rgba(59,158,206,.15)}
 .sum-card .num{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
 .sum-card .name{font-size:16px;font-weight:700;color:#fff;margin-bottom:2px}
@@ -109,7 +109,7 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 .rating-bar-bg{flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden}
 .rating-bar{height:100%;border-radius:4px;transition:width .6s ease}
 .rating-grade{font-size:12px;font-weight:700;width:40px;text-align:center}
-.rating-comment{font-size:11px;color:var(--text3);flex:2}
+.rating-comment{font-size:12px;color:var(--text2);flex:2}
 .grade-ap{color:var(--green)}.grade-ap .rating-bar,.grade-ap .dr-detail-bar{background:var(--green);width:100%}
 .grade-a{color:var(--green)}.grade-a .rating-bar,.grade-a .dr-detail-bar{background:var(--green);width:95%}
 .grade-am{color:var(--green)}.grade-am .rating-bar,.grade-am .dr-detail-bar{background:var(--green);width:88%}
@@ -147,7 +147,7 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:
 .dr-detail-bar-bg{flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;max-width:120px}
 .dr-detail-bar{height:100%;border-radius:4px;transition:width .6s ease}
 .dr-detail-grade{font-size:12px;font-weight:700;width:30px;text-align:center}
-.dr-detail-comment{font-size:12px;color:var(--text3);flex:2;min-width:0}
+.dr-detail-comment{font-size:12px;color:var(--text2);flex:2;min-width:0}
 .dr-suggest{margin-top:4px}
 .dr-suggest-item{font-size:13px;color:var(--text);line-height:1.6;padding:8px 12px;background:rgba(52,211,153,.05);border-radius:8px;border-left:3px solid var(--green);margin-bottom:6px}
 .dr-changes{margin-top:4px}
@@ -254,6 +254,7 @@ document.getElementById('tabBar').addEventListener('click',function(e){
   document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
   t.classList.add('active');
   document.getElementById('tab-'+t.dataset.tab).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
 });
 
 function gradeClass(g){
@@ -286,7 +287,7 @@ function renderDesign(){
     const grade=dr.grade||'-';
     const summary=dr.summary||'평가 대기 중';
     const dateStr=dr.reviewDate?`리뷰 일자: ${dr.reviewDate}`:'';
-    const photo=`<img class="dr-photo" src="photos/tank-${t.id}/latest.jpg" onerror="this.style.display='none'">`;
+    const photo=`<img class="dr-photo" src="photos/tank-${t.id}/latest.jpg" alt="${t.id}번 ${t.name} ${t.concept} 최신 사진" onerror="this.style.display='none'">`;
     let detailsHtml='';
     if(dr.details&&Object.keys(dr.details).length){
       detailsHtml=`<div class="dr-section-title">세부 평가</div><div class="dr-detail-grid">${Object.entries(dr.details).map(([k,v])=>{
@@ -330,7 +331,7 @@ function renderSummary(){
     if(c.snail)b+=`<span class="badge badge-snail">스네일 ${c.snail}</span>`;
     if(t.co2)b+=`<span class="badge badge-co2">CO2</span>`;
     if(t.equipment.includes('자동환수시스템'))b+=`<span class="badge badge-auto">자동환수</span>`;
-    const thumb=`<div class="sum-thumb"><img src="photos/tank-${t.id}/latest.jpg" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'>📷</div>'"></div>`;
+    const thumb=`<div class="sum-thumb"><img src="photos/tank-${t.id}/latest.jpg" alt="${t.id}번 ${t.name} 썸네일" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'>📷</div>'"></div>`;
     return`<div class="sum-card" onclick="selectTank(${i})"><div class="sum-card-info"><div class="num">${t.id}번 수조</div><div class="name">${t.name}</div><div class="concept">${t.concept} · ${t.volume}</div><div class="badges">${b}</div></div>${thumb}</div>`;
   }).join('');
 }
