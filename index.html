@@ -405,6 +405,7 @@ function renderHistoryFilter(){
   const btns=[{id:'all',icon:'📋',label:'전체'}];
   data.tanks.forEach((t,i)=>btns.push({id:'tank-'+t.id,icon:icons[i]||'🐠',label:t.id+'번'}));
   btns.push({id:'panorama',icon:'🌊',label:'파노라마'});
+  if(data.retiredTanks&&data.retiredTanks.length)btns.push({id:'retired',icon:'📦',label:'추억'});
   el.innerHTML=btns.map(b=>`<div class="hf-btn${b.id===activeHistoryFilter?' active':''}" onclick="filterHistory('${b.id}')"><span class="hf-icon">${b.icon}</span>${b.label}</div>`).join('');
 }
 
@@ -416,7 +417,7 @@ function filterHistory(id){
 
 async function loadHistory(){
   renderHistoryFilter();
-  const folders=['tank-1','tank-2','tank-3','tank-4','panorama'];
+  const folders=['tank-1','tank-2','tank-3','tank-4','panorama','retired-4','retired-5'];
   for(const folder of folders){
     if(historyCache[folder])continue;
     try{
@@ -435,8 +436,9 @@ async function loadHistory(){
 
 function renderHistoryContent(){
   const el=document.getElementById('historyContent');
-  const folders=activeHistoryFilter==='all'?['tank-1','tank-2','tank-3','tank-4','panorama']:[activeHistoryFilter];
-  const tankNames={'tank-1':'1번 2자 슬림','tank-2':'2번 30하이큐브 샌드항','tank-3':'3번 30하이큐브 수초항','tank-4':'4번 60슬림 양면관상','panorama':'★ 파노라마'};
+  var allFolders=['tank-1','tank-2','tank-3','tank-4','panorama','retired-4','retired-5'];
+  const folders=activeHistoryFilter==='all'?allFolders:activeHistoryFilter==='retired'?['retired-4','retired-5']:[activeHistoryFilter];
+  const tankNames={'tank-1':'1번 2자 슬림','tank-2':'2번 30하이큐브 샌드항','tank-3':'3번 30하이큐브 수초항','tank-4':'4번 60슬림 양면관상','panorama':'★ 파노라마','retired-4':'[추억] 구4번 20하이큐브 샌드항','retired-5':'[추억] 구5번 20하이큐브 수초항'};
   let html='';
   let hasPhotos=false;
   for(const folder of folders){
@@ -460,6 +462,25 @@ function openLightbox(url,info){
   document.getElementById('lightbox').classList.add('show');
 }
 function closeLightbox(){document.getElementById('lightbox').classList.remove('show')}
+
+function renderRetired(){
+  var el=document.getElementById('retiredCards');
+  var retired=data.retiredTanks||[];
+  if(!retired.length){el.innerHTML='<div class="history-empty">추억의 어항이 없습니다.</div>';return;}
+  var h='<div class="retired-header-wrap"><h2>추억의 어항</h2><p>더 나은 환경을 위해 통합되거나 해체된 어항들의 기록</p></div>';
+  h+=retired.map(function(t){
+    var fa=t.fauna.map(function(f){var cls=f.type==='fish'?'fish-tag':f.type==='shrimp'?'shrimp-tag':'snail-tag';
+      var cnt=typeof f.count==='number'?' ×'+f.count:' ('+f.count+')';return '<span class="'+cls+'">'+f.name+cnt+'</span>';}).join('');
+    var fl=t.flora.map(function(f){return '<span class="plant-tag">'+f+'</span>';}).join('');
+    var co2=t.co2?'<div class="st-cell"><div class="st-cell-label">CO2</div><div class="st-cell-value"><strong>'+t.co2+'</strong></div></div>':'';
+    var eq=t.equipment&&t.equipment.length?t.equipment.join('<br>'):'—';
+    var reason=t.retiredReason?'<div class="retired-reason">📦 '+t.retiredReason+' ('+t.retiredDate+')</div>':'';
+    var photoFolder=t.id==='구4'?'retired-4':'retired-5';
+    var photo='<div class="st-cell" style="grid-column:1/-1;padding:0"><img src="photos/'+photoFolder+'/latest.jpg" style="width:100%;max-height:200px;object-fit:cover;display:block" onerror="this.style.display=\'none\'"></div>';
+    return '<div class="st-card retired-card"><div class="st-card-header"><div class="st-tank-num" style="background:linear-gradient(135deg,#4a5568,#718096)">'+t.id+'</div><div class="st-card-title"><span class="st-name">'+t.name+'<span class="retired-badge">해체됨</span></span><span class="st-tag">'+t.concept+' \xb7 '+t.volume+'</span></div></div>'+photo+'<div class="st-card-body"><div class="st-cell"><div class="st-cell-label">바닥재</div><div class="st-cell-value"><strong>'+t.substrate+'</strong></div></div><div class="st-cell"><div class="st-cell-label">여과 시스템</div><div class="st-cell-value"><strong>'+t.filter+'</strong></div></div><div class="st-cell"><div class="st-cell-label">조명</div><div class="st-cell-value"><strong>'+t.light+'</strong></div></div><div class="st-cell"><div class="st-cell-label">장비</div><div class="st-cell-value">'+eq+'</div></div>'+co2+'<div class="st-bio"><div class="st-cell"><div class="st-cell-label">생물 라인업 (해체 당시)</div><div class="tag-list">'+fa+'</div></div><div class="st-cell"><div class="st-cell-label">수초</div><div class="tag-list">'+fl+'</div></div></div></div>'+reason+'</div>';
+  }).join('');
+  el.innerHTML=h;
+}
 
 // Load history when tab is clicked
 document.getElementById('tabBar').addEventListener('click',function(e){
