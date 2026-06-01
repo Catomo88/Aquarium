@@ -422,45 +422,61 @@ async function uploadPhoto() {
       // Also update latest
       const latestPath = `photos/${folder}/latest.jpg`;
 
-      // Upload timestamped photo
-      const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${decryptedToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: `📷 ${folder} ${dateStr} ${timeStr}`,
-          content: base64
-        })
-      });
-
-      if (!res.ok) throw new Error(`${folder} 업로드 실패: ${res.status}`);
-
-      // Update latest.jpg (get sha first if exists)
-      let sha = null;
-      const check = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${latestPath}`, {
-        headers: { 'Authorization': `Bearer ${decryptedToken}` }
-      });
-      if (check.ok) {
-        const existing = await check.json();
-        sha = existing.sha;
+      // Upload timestamped photo with retry
+      let uploaded = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${decryptedToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: `📷 ${folder} ${dateStr} ${timeStr}`,
+            content: base64
+          })
+        });
+        if (res.ok) { uploaded = true; break; }
+        if (res.status === 409 || res.status === 422) {
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
+        }
+        throw new Error(`${folder} 업로드 실패: ${res.status}`);
       }
+      if (!uploaded) throw new Error(`${folder} 업로드 실패: 재시도 초과`);
 
-      const latestBody = {
-        message: `📷 ${folder} latest 갱신`,
-        content: base64
-      };
-      if (sha) latestBody.sha = sha;
+      // Update latest.jpg with retry (sha may be stale after rapid uploads)
+      for (let attempt = 0; attempt < 3; attempt++) {
+        let sha = null;
+        const check = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${latestPath}`, {
+          headers: { 'Authorization': `Bearer ${decryptedToken}` }
+        });
+        if (check.ok) {
+          const existing = await check.json();
+          sha = existing.sha;
+        }
 
-      await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${latestPath}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${decryptedToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(latestBody)
-      });
+        const latestBody = {
+          message: `📷 ${folder} latest 갱신`,
+          content: base64
+        };
+        if (sha) latestBody.sha = sha;
+
+        const latestRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${latestPath}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${decryptedToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(latestBody)
+        });
+
+        if (latestRes.ok) break;
+        if (latestRes.status === 409 || latestRes.status === 422) {
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
+        }
+      }
 
       results.push(folder);
     }
