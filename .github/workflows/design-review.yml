@@ -1,16 +1,17 @@
 name: 어항 디자인 리뷰 (Gemini)
 
-# 사진이 photos/ 에 푸시될 때마다 실행 (camera.html 업로드 = 커밋이므로 자동 트리거)
+# 타임스탬프 사진(예: 2026-06-16_2229.jpg)이 푸시될 때만 실행.
+# latest.jpg 커밋으로는 트리거되지 않아 사진 1장당 1회만 리뷰함.
 on:
   push:
     paths:
-      - "photos/**"
+      - "photos/**/20*.jpg"
   workflow_dispatch: {}   # 수동 실행도 허용
 
-# 같은 브랜치의 이전 실행이 진행 중이면 취소 (사진 2장 연속 업로드 시 중복 방지)
+# 사진을 연속으로 올려도 리뷰가 누락되지 않도록 순차 실행(취소 안 함)
 concurrency:
   group: design-review-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -18,11 +19,13 @@ permissions:
 jobs:
   review:
     runs-on: ubuntu-latest
-    # 봇이 만든 리뷰 커밋([skip ci])으로는 재실행 방지 (이중 안전장치)
+    # 봇이 만든 리뷰 커밋([skip ci])으로는 재실행 방지
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     steps:
       - name: 저장소 체크아웃
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # 리베이스를 위해 전체 히스토리 확보
 
       - name: 파이썬 설정
         uses: actions/setup-python@v5
@@ -40,6 +43,4 @@ jobs:
         run: |
           git config user.name "Catomo88"
           git config user.email "ctm1544@gmail.com"
-          git add aquarium-data.json index.html
-          git commit -m "${{ steps.review.outputs.commit_msg }} [skip ci]"
-          git push
+          git 
