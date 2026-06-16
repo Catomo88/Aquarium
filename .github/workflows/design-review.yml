@@ -1,4 +1,4 @@
-name: 어항 디자인 리뷰 (Gemini)
+name: "어항 디자인 리뷰 (Gemini)"
 
 # 타임스탬프 사진(예: 2026-06-16_2229.jpg)이 푸시될 때만 실행.
 # latest.jpg 커밋으로는 트리거되지 않아 사진 1장당 1회만 리뷰함.
@@ -6,11 +6,11 @@ on:
   push:
     paths:
       - "photos/**/20*.jpg"
-  workflow_dispatch: {}   # 수동 실행도 허용
+  workflow_dispatch: {}
 
-# 사진을 연속으로 올려도 리뷰가 누락되지 않도록 순차 실행(취소 안 함)
+# 사진을 연속으로 올려도 리뷰 누락이 없도록 순차 실행(취소 안 함)
 concurrency:
-  group: design-review-${{ github.ref }}
+  group: "design-review-${{ github.ref }}"
   cancel-in-progress: false
 
 permissions:
@@ -19,28 +19,40 @@ permissions:
 jobs:
   review:
     runs-on: ubuntu-latest
-    # 봇이 만든 리뷰 커밋([skip ci])으로는 재실행 방지
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     steps:
-      - name: 저장소 체크아웃
+      - name: "저장소 체크아웃"
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # 리베이스를 위해 전체 히스토리 확보
+          fetch-depth: 0
 
-      - name: 파이썬 설정
+      - name: "파이썬 설정"
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: 디자인 리뷰 실행
+      - name: "디자인 리뷰 실행"
         id: review
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python scripts/review.py
 
-      - name: 변경 사항 커밋 & 푸시
+      - name: "변경 사항 커밋 및 푸시"
         if: ${{ steps.review.outputs.changed == 'true' }}
+        env:
+          COMMIT_MSG: ${{ steps.review.outputs.commit_msg }}
         run: |
           git config user.name "Catomo88"
           git config user.email "ctm1544@gmail.com"
-          git 
+          git add aquarium-data.json index.html
+          git commit -m "${COMMIT_MSG} [skip ci]"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "push success (attempt ${i})"
+              exit 0
+            fi
+            echo "remote moved ahead, retrying (${i})"
+            sleep $(( (RANDOM % 5) + 3 ))
+          done
+          echo "::error::push failed after retries"
+          exit 1
